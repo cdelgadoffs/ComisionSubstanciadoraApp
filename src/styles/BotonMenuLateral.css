@@ -1,0 +1,29 @@
+.l2-boton-menu-lateral {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+.l2-boton-menu-lateral-icono {
+  color: #f0f0f0;
+  font-size: 24px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.l2-boton-menu-lateral-icono:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.l2-boton-menu-lateral-cerrar {
+  color: inherit;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 4px;
+  border-radius: 4px;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+.l2-boton-menu-lateral-cerrar:hover {
+  opacity: 1;
+}
