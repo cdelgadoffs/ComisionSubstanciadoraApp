@@ -1,17 +1,17 @@
-import '../../styles/BuscadorGlobal.css';
+import '../../styles/L2/BuscadorGlobal.css';
 
 export default function BuscadorGlobal({ value, onChange, placeholder = 'Buscar...' }) {
   return (
-    <div className="l2-buscador-global">
+    <div className="lvl2-buscador-global">
       <input
         type="text"
-        className="l2-buscador-global-input"
+        className="lvl2-buscador-global-input"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
       {value && (
-        <span className="l2-buscador-global-limpiar" onClick={() => onChange('')}>
+        <span className="lvl2-buscador-global-limpiar" onClick={() => onChange('')}>
           ✕
         </span>
       )}

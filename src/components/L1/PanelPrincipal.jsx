@@ -1,8 +1,8 @@
-import '../../styles/PanelPrincipal.css';
+import '../../styles/L1/PanelPrincipal.css';
 
 export default function PanelPrincipal({ izquierda = 0, children }) {
   return (
-    <main className="l1-panel-principal" style={{ left: izquierda }}>
+    <main className="lvl1-panel-principal" style={{ left: izquierda }}>
       {children}
     </main>
   );

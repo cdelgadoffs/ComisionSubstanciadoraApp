@@ -1,11 +1,11 @@
 import BotonMenuLateral from '../L2/BotonMenuLateral.jsx';
 
-export default function Sidebar3({ abierto = true, izquierda = 0, onCerrar, children }) {
+export default function Sidebar3({ abierto = true, izquierda = 0, badge, onCerrar, children }) {
   return (
-    <aside className={'l1-sidebar3' + (abierto ? '' : ' l1-sidebar3-oculto')} style={{ left: izquierda }}>
-      <div className="l2-sb-header">
-        <div className="l2-sb-header-top">
-          <div className="l2-sb-badge">Nuevo punto</div>
+    <aside className={'lvl1-sidebar3' + (abierto ? '' : ' lvl1-sidebar3-oculto')} style={{ left: izquierda }}>
+      <div className="lvl1-sb-header">
+        <div className="lvl1-sb-header-top">
+          <div className="lvl1-sb-badge">{badge}</div>
           <BotonMenuLateral variant="cerrar" ariaLabel="Cerrar panel" onClick={onCerrar}>✕</BotonMenuLateral>
         </div>
       </div>

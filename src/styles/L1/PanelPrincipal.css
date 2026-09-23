@@ -1,4 +1,4 @@
-.l1-panel-principal {
+.lvl1-panel-principal {
   position: fixed;
   top: 52px;
   right: 0;
@@ -10,12 +10,4 @@
   justify-content: center;
   overflow: auto;
   transition: left 0.25s ease;
-}
-.l1-panel-principal-placeholder {
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #d5d5d5;
 }

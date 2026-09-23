@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import '../../styles/FechaDia.css';
+import '../../styles/L2/FechaDia.css';
 
 export default function FechaDia() {
   const [fechaTexto, setFechaTexto] = useState('');
@@ -10,5 +10,5 @@ export default function FechaDia() {
     setFechaTexto(ahora.toLocaleDateString('es-ES', opciones));
   }, []);
 
-  return <span className="l2-fecha-dia">{fechaTexto}</span>;
+  return <span className="lvl2-fecha-dia">{fechaTexto}</span>;
 }

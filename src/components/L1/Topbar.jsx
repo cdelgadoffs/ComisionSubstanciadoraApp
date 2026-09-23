@@ -4,18 +4,18 @@ import FechaDia from '../L2/FechaDia.jsx';
 
 export default function Topbar({ onToggleSidebar, terminoBusqueda, onCambiarBusqueda }) {
   return (
-    <header className="l1-topbar">
-      <div className="l1-topbar-left">
+    <header className="lvl1-topbar">
+      <div className="lvl1-topbar-left">
         {onToggleSidebar && (
           <BotonMenuLateral variant="icono" ariaLabel="Alternar panel" onClick={onToggleSidebar}>☰</BotonMenuLateral>
         )}
         <img
-          className="l1-topbar-logo"
+          className="lvl1-topbar-logo"
           src="https://raw.githubusercontent.com/cdelgadoffs/CGD/535876195bedc1b602f98438ee3a42ff11cbb817/logo.png"
           alt="Logo institucional"
         />
       </div>
-      <div className="l1-topbar-right">
+      <div className="lvl1-topbar-right">
         <BuscadorGlobal value={terminoBusqueda} onChange={onCambiarBusqueda} placeholder="Buscar punto..." />
         <FechaDia />
       </div>

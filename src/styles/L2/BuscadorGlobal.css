@@ -1,8 +1,8 @@
-.l2-buscador-global {
+.lvl2-buscador-global {
   position: relative;
   display: inline-block;
 }
-.l2-buscador-global-input {
+.lvl2-buscador-global-input {
   width: 200px;
   padding: 6px 12px;
   padding-right: 30px;
@@ -12,17 +12,18 @@
   color: #f0f0f0;
   font-size: 13px;
   font-family: inherit;
+  font-weight: 600;
   transition: border-color 0.2s, width 0.2s;
 }
-.l2-buscador-global-input::placeholder {
+.lvl2-buscador-global-input::placeholder {
   color: #888;
 }
-.l2-buscador-global-input:focus {
+.lvl2-buscador-global-input:focus {
   outline: none;
   border-color: #666;
   width: 240px;
 }
-.l2-buscador-global-limpiar {
+.lvl2-buscador-global-limpiar {
   position: absolute;
   right: 8px;
   top: 50%;
@@ -35,6 +36,6 @@
   border-radius: 50%;
   transition: color 0.2s, background 0.2s;
 }
-.l2-buscador-global-limpiar:hover {
+.lvl2-buscador-global-limpiar:hover {
   color: #f0f0f0;
 }

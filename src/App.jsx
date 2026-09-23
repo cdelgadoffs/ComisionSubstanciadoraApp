@@ -1,14 +1,10 @@
 import { useState } from 'react';
 import Skeleton from './components/Skeleton.jsx';
 import Topbar from './components/L1/Topbar.jsx';
-import PanelPrincipal from './components/L1/PanelPrincipal.jsx';
-import Sidebar1 from './components/L1/Sidebar1.jsx';
-import Sidebar2 from './components/L1/Sidebar2.jsx';
-import Sidebar3 from './components/L1/Sidebar3.jsx';
 import Sidebar4 from './components/L1/Sidebar4.jsx';
 import Sidebar5 from './components/L1/Sidebar5.jsx';
-import './styles/L1.css';
-import './styles/L2.css';
+import Inicio from './pages/Inicio.jsx';
+import './styles/L1/L1.css';
 
 const ANCHO_SIDEBAR1 = 270;
 const ANCHO_SIDEBAR2 = 250;
@@ -21,6 +17,7 @@ function App() {
   const [sidebar4Abierto, setSidebar4Abierto] = useState(false);
   const [sidebar5Abierto, setSidebar5Abierto] = useState(false);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
+  const [vistaActual, setVistaActual] = useState('inicio');
 
   const izquierdaSidebar1 = 0;
   const izquierdaSidebar2 = izquierdaSidebar1 + (sidebar1Abierto ? ANCHO_SIDEBAR1 : 0);
@@ -36,12 +33,14 @@ function App() {
           onCambiarBusqueda={setTerminoBusqueda}
         />
       </Skeleton>
-      <PanelPrincipal izquierda={anchoIzquierdo}>
-        <span className="l1-panel-principal-placeholder">Panel principal</span>
-      </PanelPrincipal>
-      <Sidebar1 abierto={sidebar1Abierto} izquierda={izquierdaSidebar1} onCerrar={() => setSidebar1Abierto(false)} />
-      <Sidebar2 abierto={sidebar2Abierto} izquierda={izquierdaSidebar2} onCerrar={() => setSidebar2Abierto(false)} />
-      <Sidebar3 abierto={sidebar3Abierto} izquierda={izquierdaSidebar3} onCerrar={() => setSidebar3Abierto(false)} />
+      <Inicio
+        sidebar1={{ abierto: sidebar1Abierto, izquierda: izquierdaSidebar1, onCerrar: () => setSidebar1Abierto(false) }}
+        sidebar2={{ abierto: sidebar2Abierto, izquierda: izquierdaSidebar2, onCerrar: () => setSidebar2Abierto(false) }}
+        sidebar3={{ abierto: sidebar3Abierto, izquierda: izquierdaSidebar3, onCerrar: () => setSidebar3Abierto(false) }}
+        panelIzquierda={anchoIzquierdo}
+        vistaActual={vistaActual}
+        onCambiarVista={setVistaActual}
+      />
       <Sidebar4 abierto={sidebar4Abierto} onCerrar={() => setSidebar4Abierto(false)} />
       <Sidebar5 abierto={sidebar5Abierto} onCerrar={() => setSidebar5Abierto(false)} />
     </>
