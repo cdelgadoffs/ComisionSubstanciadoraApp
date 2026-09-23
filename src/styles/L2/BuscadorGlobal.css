@@ -12,7 +12,6 @@
   color: #f0f0f0;
   font-size: 13px;
   font-family: inherit;
-  font-weight: 600;
   transition: border-color 0.2s, width 0.2s;
 }
 .lvl2-buscador-global-input::placeholder {

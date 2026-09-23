@@ -6,17 +6,15 @@ import MenuPrincipalSesion from '../components/L3/sesiones/MenuPrincipalSesion.j
 import { sesionActual, sesionEnCurso, nuevoPunto } from '../components/L3/sesiones/datosSesionActual.js';
 import '../styles/Inicio.css';
 
-export default function Inicio({ sidebar1, sidebar2, sidebar3, panelIzquierda, vistaActual, onCambiarVista }) {
+export default function Inicio({ sidebar1, sidebar2, sidebar3, panelIzquierda, vistaActual, onCambiarVista, onAgregarPunto }) {
   return (
     <>
       <Sidebar1
-        abierto={sidebar1.abierto}
         izquierda={sidebar1.izquierda}
-        onCerrar={sidebar1.onCerrar}
         titulo={sesionActual.titulo}
         subtitulo={sesionActual.subtitulo}
       >
-        <MenuPrincipalSesion vistaActual={vistaActual} onCambiarVista={onCambiarVista} />
+        <MenuPrincipalSesion vistaActual={vistaActual} onCambiarVista={onCambiarVista} onAgregarPunto={onAgregarPunto} />
       </Sidebar1>
       <Sidebar2
         abierto={sidebar2.abierto}

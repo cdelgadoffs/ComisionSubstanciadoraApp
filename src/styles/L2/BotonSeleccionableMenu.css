@@ -51,3 +51,13 @@
   background: #d0e0ff;
   color: #1a56db;
 }
+.lvl2-boton-seleccionable-menu-chevron {
+  margin-left: auto;
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+  font-size: 14px;
+  color: #888;
+}
+.lvl2-boton-seleccionable-menu-chevron-expandido {
+  transform: rotate(-90deg);
+}

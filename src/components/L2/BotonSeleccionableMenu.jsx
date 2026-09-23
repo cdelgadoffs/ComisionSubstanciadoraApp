@@ -1,6 +1,6 @@
 import '../../styles/L2/BotonSeleccionableMenu.css';
 
-export default function BotonSeleccionableMenu({ activo = false, deshabilitado = false, badge, onClick, children }) {
+export default function BotonSeleccionableMenu({ activo = false, deshabilitado = false, badge, expandible = false, expandido = false, onClick, children }) {
   return (
     <div
       className={
@@ -14,6 +14,16 @@ export default function BotonSeleccionableMenu({ activo = false, deshabilitado =
       <span>{children}</span>
       {badge !== undefined && (
         <span className="lvl2-boton-seleccionable-menu-badge">{badge}</span>
+      )}
+      {expandible && (
+        <span
+          className={
+            'lvl2-boton-seleccionable-menu-chevron' +
+            (expandido ? ' lvl2-boton-seleccionable-menu-chevron-expandido' : '')
+          }
+        >
+          &#8250;
+        </span>
       )}
     </div>
   );

@@ -1,0 +1,14 @@
+.lvl2-boton-s {
+  background: transparent;
+  border: 1px solid #3a3a3a;
+  color: #ccc;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.lvl2-boton-s:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

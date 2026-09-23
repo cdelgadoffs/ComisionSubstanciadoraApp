@@ -1,0 +1,21 @@
+.lvl2-boton-agregar {
+  margin-left: 0;
+  width: 0;
+  height: 18px;
+  line-height: 16px;
+  text-align: center;
+  border: none;
+  border-radius: 20%;
+  background: #333;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: width 0.15s ease, margin-left 0.15s ease, opacity 0.1s ease;
+}
+.lvl2-boton-agregar:hover {
+  background: #111;
+}
