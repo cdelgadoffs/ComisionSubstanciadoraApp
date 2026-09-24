@@ -3,7 +3,7 @@ import Sidebar4 from './components/L1/Sidebar4.jsx';
 import Inicio from './pages/Inicio.jsx';
 import ProyectoOrdenDia from './pages/ProyectoOrdenDia.jsx';
 import SesionPrevia from './pages/SesionPrevia.jsx';
-import ActaSesion from './pages/ActaSesion.jsx';
+import Historial from './pages/Historial.jsx';
 import { useUI } from './context/UIContext.jsx';
 import './styles/L1/L1.css';
 
@@ -11,7 +11,7 @@ const PAGES = {
   inicio: Inicio,
   proyecto: ProyectoOrdenDia,
   sesionPrevia: SesionPrevia,
-  actaSesion: ActaSesion,
+  actaSesion: Historial,
 };
 
 function App() {

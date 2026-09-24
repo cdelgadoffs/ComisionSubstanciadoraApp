@@ -5,18 +5,19 @@ import Sidebar5 from '../components/L1/Sidebar5.jsx';
 import PanelPrincipal from '../components/L1/PanelPrincipal.jsx';
 import MenuPrincipalSesion from '../components/L3/MenuPrincipalSesion.jsx';
 import BotonSalirSesion from '../components/L3/BotonSalirSesion.jsx';
-import { useUI } from '../context/UIContext.jsx';
+import { useUI, ANCHO_SIDEBAR3 } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
 import '../styles/pages/Inicio.css';
 
 export default function Inicio() {
   const {
-    izquierdaSidebar1, izquierdaSidebar3, panelIzquierda,
+    izquierdaSidebar1, izquierdaSidebar3,
     sidebar3Abierto, setSidebar3Abierto,
     sidebar5Abierto, setSidebar5Abierto,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
   const { sesionActual, nuevoPunto } = useProyecto();
+  const panelIzquierda = izquierdaSidebar3 + (sidebar3Abierto ? ANCHO_SIDEBAR3 : 0);
 
   return (
     <>

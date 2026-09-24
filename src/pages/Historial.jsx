@@ -1,22 +1,27 @@
 import Topbar from '../components/L1/Topbar.jsx';
 import Sidebar1 from '../components/L1/Sidebar1.jsx';
+import Sidebar2 from '../components/L1/Sidebar2.jsx';
 import Sidebar3 from '../components/L1/Sidebar3.jsx';
 import Sidebar5 from '../components/L1/Sidebar5.jsx';
 import PanelPrincipal from '../components/L1/PanelPrincipal.jsx';
 import MenuPrincipalSesion from '../components/L3/MenuPrincipalSesion.jsx';
 import BotonSalirSesion from '../components/L3/BotonSalirSesion.jsx';
-import { useUI } from '../context/UIContext.jsx';
+import { useUI, ANCHO_SIDEBAR2, ANCHO_SIDEBAR3 } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
-import '../styles/pages/ActaSesion.css';
+import '../styles/pages/Historial.css';
 
-export default function ActaSesion() {
+export default function Historial() {
   const {
-    izquierdaSidebar1, izquierdaSidebar3, panelIzquierda,
+    izquierdaSidebar1, izquierdaSidebar2, izquierdaSidebar3,
+    sidebar2Abierto, setSidebar2Abierto,
     sidebar3Abierto, setSidebar3Abierto,
     sidebar5Abierto, setSidebar5Abierto,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
-  const { sesionActual, nuevoPunto } = useProyecto();
+  const { sesionActual, sesionEnCurso, nuevoPunto } = useProyecto();
+  const panelIzquierda = izquierdaSidebar2
+    + (sidebar2Abierto ? ANCHO_SIDEBAR2 : 0)
+    + (sidebar3Abierto ? ANCHO_SIDEBAR3 : 0);
 
   return (
     <>
@@ -34,6 +39,13 @@ export default function ActaSesion() {
       >
         <MenuPrincipalSesion />
       </Sidebar1>
+      <Sidebar2
+        abierto={sidebar2Abierto}
+        izquierda={izquierdaSidebar2}
+        onCerrar={() => setSidebar2Abierto(false)}
+        badge={sesionEnCurso.badge}
+        subtitulo={sesionEnCurso.subtitulo}
+      />
       <Sidebar3
         abierto={sidebar3Abierto}
         izquierda={izquierdaSidebar3}
@@ -45,9 +57,9 @@ export default function ActaSesion() {
         onCerrar={() => setSidebar5Abierto(false)}
       />
       <PanelPrincipal izquierda={panelIzquierda}>
-        <div className="pg-acta-sesion">
-          <h1 className="pg-acta-sesion-titulo">Historial</h1>
-          <p className="pg-acta-sesion-texto">Aún no hay actas generadas.</p>
+        <div className="pg-historial">
+          <h1 className="pg-historial-titulo">Historial</h1>
+          <p className="pg-historial-texto">Aún no hay actas generadas.</p>
         </div>
       </PanelPrincipal>
     </>

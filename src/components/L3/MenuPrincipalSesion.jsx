@@ -6,8 +6,11 @@ import { useUI } from '../../context/UIContext.jsx';
 
 export default function MenuPrincipalSesion() {
   const { VISTAS_MENU_PRINCIPAL, SECCIONES_DOCUMENTO } = useProyecto();
-  const { vistaActual, setVistaActual, setSidebar3Abierto } = useUI();
-  const [acordeonAbierto, setAcordeonAbierto] = useState(false);
+  const {
+    vistaActual, setVistaActual,
+    acordeonAbierto, setAcordeonAbierto,
+    setSidebar3Abierto,
+  } = useUI();
   const [seccionActiva, setSeccionActiva] = useState(null);
 
   function seleccionarVista(v) {
