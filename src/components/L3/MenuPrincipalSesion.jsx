@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import BotonSeleccionableMenu from '../../L2/BotonSeleccionableMenu.jsx';
-import SubMenuDD from '../../L2/SubMenuDD.jsx';
-import { VISTAS_MENU_PRINCIPAL, SECCIONES_DOCUMENTO } from './datosSesionActual.js';
+import BotonSeleccionableMenu from '../L2/BotonSeleccionableMenu.jsx';
+import SubMenuDD from '../L2/SubMenuDD.jsx';
+import { useProyecto } from '../../context/ProyectoContext.jsx';
+import { useUI } from '../../context/UIContext.jsx';
 
-export default function MenuPrincipalSesion({ vistaActual, onCambiarVista, onAgregarPunto }) {
+export default function MenuPrincipalSesion() {
+  const { VISTAS_MENU_PRINCIPAL, SECCIONES_DOCUMENTO } = useProyecto();
+  const { vistaActual, setVistaActual, setSidebar3Abierto } = useUI();
   const [acordeonAbierto, setAcordeonAbierto] = useState(false);
   const [seccionActiva, setSeccionActiva] = useState(null);
 
@@ -12,12 +15,12 @@ export default function MenuPrincipalSesion({ vistaActual, onCambiarVista, onAgr
       if (vistaActual === v.id) {
         setAcordeonAbierto((a) => !a);
       } else {
-        onCambiarVista && onCambiarVista(v.id);
+        setVistaActual(v.id);
         setAcordeonAbierto(true);
       }
       return;
     }
-    onCambiarVista && onCambiarVista(v.id);
+    setVistaActual(v.id);
   }
 
   return (
@@ -41,7 +44,7 @@ export default function MenuPrincipalSesion({ vistaActual, onCambiarVista, onAgr
                 items={SECCIONES_DOCUMENTO}
                 activoId={seccionActiva}
                 onSeleccionar={setSeccionActiva}
-                onAgregar={(seccionId) => onAgregarPunto && onAgregarPunto(seccionId)}
+                onAgregar={() => setSidebar3Abierto(true)}
                 iconoAgregar="+"
               />
             )}

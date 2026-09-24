@@ -2,31 +2,39 @@ import Sidebar1 from '../components/L1/Sidebar1.jsx';
 import Sidebar2 from '../components/L1/Sidebar2.jsx';
 import Sidebar3 from '../components/L1/Sidebar3.jsx';
 import PanelPrincipal from '../components/L1/PanelPrincipal.jsx';
-import MenuPrincipalSesion from '../components/L3/sesiones/MenuPrincipalSesion.jsx';
-import { sesionActual, sesionEnCurso, nuevoPunto } from '../components/L3/sesiones/datosSesionActual.js';
-import '../styles/Inicio.css';
+import MenuPrincipalSesion from '../components/L3/MenuPrincipalSesion.jsx';
+import { useUI } from '../context/UIContext.jsx';
+import { useProyecto } from '../context/ProyectoContext.jsx';
+import '../styles/pages/Inicio.css';
 
-export default function Inicio({ sidebar1, sidebar2, sidebar3, panelIzquierda, vistaActual, onCambiarVista, onAgregarPunto }) {
+export default function Inicio() {
+  const {
+    izquierdaSidebar1, izquierdaSidebar2, izquierdaSidebar3, panelIzquierda,
+    sidebar2Abierto, setSidebar2Abierto,
+    sidebar3Abierto, setSidebar3Abierto,
+  } = useUI();
+  const { sesionActual, sesionEnCurso, nuevoPunto } = useProyecto();
+
   return (
     <>
       <Sidebar1
-        izquierda={sidebar1.izquierda}
+        izquierda={izquierdaSidebar1}
         titulo={sesionActual.titulo}
         subtitulo={sesionActual.subtitulo}
       >
-        <MenuPrincipalSesion vistaActual={vistaActual} onCambiarVista={onCambiarVista} onAgregarPunto={onAgregarPunto} />
+        <MenuPrincipalSesion />
       </Sidebar1>
       <Sidebar2
-        abierto={sidebar2.abierto}
-        izquierda={sidebar2.izquierda}
-        onCerrar={sidebar2.onCerrar}
+        abierto={sidebar2Abierto}
+        izquierda={izquierdaSidebar2}
+        onCerrar={() => setSidebar2Abierto(false)}
         badge={sesionEnCurso.badge}
         subtitulo={sesionEnCurso.subtitulo}
       />
       <Sidebar3
-        abierto={sidebar3.abierto}
-        izquierda={sidebar3.izquierda}
-        onCerrar={sidebar3.onCerrar}
+        abierto={sidebar3Abierto}
+        izquierda={izquierdaSidebar3}
+        onCerrar={() => setSidebar3Abierto(false)}
         badge={nuevoPunto.badge}
       />
       <PanelPrincipal izquierda={panelIzquierda}>

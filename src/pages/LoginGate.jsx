@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import '../styles/LoginGate.css';
+import { useAuth } from '../context/AuthContext.jsx';
+import '../styles/pages/Gates.css';
 
 export default function LoginGate() {
+  const { iniciarSesion } = useAuth();
   const [fechaHoy, setFechaHoy] = useState('');
 
   useEffect(() => {
@@ -39,7 +41,7 @@ export default function LoginGate() {
           <h2 className="lg-box-titulo">Inicia sesión</h2>
           <p className="lg-box-sub">Acceso restringido a cuentas institucionales autorizadas.</p>
 
-          <button className="lg-btn">Iniciar sesión con Microsoft</button>
+          <button className="lg-btn" onClick={iniciarSesion}>Iniciar sesión con Microsoft</button>
 
           <div className="lg-box-footer">Órgano de Administración Judicial</div>
         </div>

@@ -8,7 +8,7 @@ export default function BotonMenuLateral({ variant = 'icono', onClick, ariaLabel
       onClick={onClick}
       aria-label={ariaLabel}
     >
-      {children}
+      {variant === 'icono' ? '☰' : children}
     </button>
   );
 }

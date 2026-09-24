@@ -1,6 +1,8 @@
-import '../styles/LoginGate.css';
+import { useAuth } from '../context/AuthContext.jsx';
+import '../styles/pages/Gates.css';
 
-export default function AccesoBloqueado() {
+export default function BloqueadoGate() {
+  const { cerrarSesion } = useAuth();
   return (
     <div className="lg-gate">
       <div className="lg-panel-oscuro" style={{ gridColumn: '1 / -1' }}>
@@ -17,7 +19,7 @@ export default function AccesoBloqueado() {
             Tu cuenta inició sesión correctamente, pero aún no tiene
             permisos asignados en esta aplicación. Contacta al administrador para que active tu acceso.
           </p>
-          <button className="lg-btn" style={{ maxWidth: '260px', margin: '0 auto' }}>
+          <button className="lg-btn" style={{ maxWidth: '260px', margin: '0 auto' }} onClick={cerrarSesion}>
             Cerrar sesión
           </button>
         </div>

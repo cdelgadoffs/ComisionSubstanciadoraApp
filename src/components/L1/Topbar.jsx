@@ -1,14 +1,13 @@
 import BotonMenuLateral from '../L2/BotonMenuLateral.jsx';
 import BuscadorGlobal from '../L2/BuscadorGlobal.jsx';
 import FechaDia from '../L2/FechaDia.jsx';
-import BotonS from '../L2/BotonS.jsx';
 
-export default function Topbar({ onToggleSidebar, terminoBusqueda, onCambiarBusqueda, textoBotonSalir, onSalir }) {
+export default function Topbar({ onToggleSidebar, terminoBusqueda, onCambiarBusqueda, children }) {
   return (
     <header className="lvl1-topbar">
       <div className="lvl1-topbar-left">
         {onToggleSidebar && (
-          <BotonMenuLateral variant="icono" ariaLabel="Alternar panel" onClick={onToggleSidebar}>☰</BotonMenuLateral>
+          <BotonMenuLateral variant="icono" ariaLabel="Alternar panel" onClick={onToggleSidebar} />
         )}
         <img
           className="lvl1-topbar-logo"
@@ -19,7 +18,7 @@ export default function Topbar({ onToggleSidebar, terminoBusqueda, onCambiarBusq
       <div className="lvl1-topbar-right">
         <BuscadorGlobal value={terminoBusqueda} onChange={onCambiarBusqueda} placeholder="Buscar punto..." />
         <FechaDia />
-        <BotonS onClick={onSalir}>{textoBotonSalir}</BotonS>
+        {children}
       </div>
     </header>
   );
