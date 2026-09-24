@@ -13,6 +13,8 @@ export function UIProvider({ children }) {
   const [sidebar3Abierto, setSidebar3Abierto] = useState(false);
   const [sidebar4Abierto, setSidebar4Abierto] = useState(false);
   const [sidebar5Abierto, setSidebar5Abierto] = useState(false);
+  const [sidebar5Ancho, setSidebar5Ancho] = useState(false);
+  const [calendarizacionMensualAbierto, setCalendarizacionMensualAbierto] = useState(false);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [vistaActual, setVistaActual] = useState('inicio');
   const [acordeonAbierto, setAcordeonAbierto] = useState(false);
@@ -26,6 +28,8 @@ export function UIProvider({ children }) {
     sidebar3Abierto, setSidebar3Abierto,
     sidebar4Abierto, setSidebar4Abierto,
     sidebar5Abierto, setSidebar5Abierto,
+    sidebar5Ancho, setSidebar5Ancho,
+    calendarizacionMensualAbierto, setCalendarizacionMensualAbierto,
     terminoBusqueda, setTerminoBusqueda,
     vistaActual, setVistaActual,
     acordeonAbierto, setAcordeonAbierto,

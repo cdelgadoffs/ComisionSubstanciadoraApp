@@ -20,6 +20,7 @@ export default function ProyectoOrdenDia() {
   const { sesionActual, nuevoPunto, FECHAS_SESIONES } = useProyecto();
   const panelIzquierda = izquierdaSidebar3 + (sidebar3Abierto ? ANCHO_SIDEBAR3 : 0);
   const arriba = ALTO_TOPBAR + ALTO_CINTA;
+  const arribaSidebar = arriba - 1;
 
   return (
     <>
@@ -33,7 +34,7 @@ export default function ProyectoOrdenDia() {
       <CintaSesiones fechas={FECHAS_SESIONES} textoVacio="Aún no hay sesiones programadas." />
       <Sidebar1
         izquierda={izquierdaSidebar1}
-        arriba={arriba}
+        arriba={arribaSidebar}
         titulo={sesionActual.titulo}
         subtitulo={sesionActual.subtitulo}
       >
@@ -42,13 +43,12 @@ export default function ProyectoOrdenDia() {
       <Sidebar3
         abierto={sidebar3Abierto}
         izquierda={izquierdaSidebar3}
-        arriba={arriba}
+        arriba={arribaSidebar}
         onCerrar={() => setSidebar3Abierto(false)}
         badge={nuevoPunto.badge}
       />
       <Sidebar5
         abierto={sidebar5Abierto}
-        arriba={arriba}
         onCerrar={() => setSidebar5Abierto(false)}
       />
       <PanelPrincipal izquierda={panelIzquierda} arriba={arriba}>

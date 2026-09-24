@@ -96,6 +96,9 @@
 .lvl1-sidebar5-open {
   transform: translateX(0);
 }
+.lvl1-sidebar5-ancho {
+  width: 420px;
+}
 
 .lvl1-sb-header {
   min-height: 64px;
@@ -113,6 +116,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+}
+.lvl1-sb-header-acciones {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 .lvl1-sb-badge {
