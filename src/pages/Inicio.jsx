@@ -6,8 +6,7 @@ import Sidebar5 from '../components/L1/Sidebar5.jsx';
 import PanelPrincipal from '../components/L1/PanelPrincipal.jsx';
 import MenuPrincipalSesion from '../components/L3/MenuPrincipalSesion.jsx';
 import BotonSalirSesion from '../components/L3/BotonSalirSesion.jsx';
-import CalendarizacionMensual from '../components/L3/CalendarizacionMensual.jsx';
-import { BotonNuevoCalendarioMensual } from '../pages/panelcontrol/CalendarizacionMensual.jsx';
+import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/L3/MenuPanelControl.jsx';
 import { useUI, ANCHO_SIDEBAR3, ALTO_TOPBAR, ALTO_CINTA } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
 import '../styles/pages/Inicio.css';
@@ -16,7 +15,7 @@ export default function Inicio() {
   const {
     izquierdaSidebar1, izquierdaSidebar3,
     sidebar3Abierto, setSidebar3Abierto,
-    sidebar5Abierto, setSidebar5Abierto,
+    sidebar5Abierto, toggleSidebar5, cerrarSidebar5,
     sidebar5Ancho,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
@@ -28,7 +27,7 @@ export default function Inicio() {
   return (
     <>
       <Topbar
-        onToggleSidebar={() => setSidebar5Abierto((a) => !a)}
+        onToggleSidebar={toggleSidebar5}
         terminoBusqueda={terminoBusqueda}
         onCambiarBusqueda={setTerminoBusqueda}
       >
@@ -53,10 +52,10 @@ export default function Inicio() {
       <Sidebar5
         abierto={sidebar5Abierto}
         ancho={sidebar5Ancho}
-        accionesHeader={<BotonNuevoCalendarioMensual />}
-        onCerrar={() => setSidebar5Abierto(false)}
+        accionesHeader={<AccionesHeaderPanelControl />}
+        onCerrar={cerrarSidebar5}
       >
-        <CalendarizacionMensual />
+        <MenuPanelControl />
       </Sidebar5>
       <PanelPrincipal izquierda={panelIzquierda} arriba={arriba}>
         <div className="pg-inicio">

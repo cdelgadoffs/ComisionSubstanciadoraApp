@@ -14,7 +14,7 @@ export function UIProvider({ children }) {
   const [sidebar4Abierto, setSidebar4Abierto] = useState(false);
   const [sidebar5Abierto, setSidebar5Abierto] = useState(false);
   const [sidebar5Ancho, setSidebar5Ancho] = useState(false);
-  const [calendarizacionMensualAbierto, setCalendarizacionMensualAbierto] = useState(false);
+  const [panelControlActivo, setPanelControlActivo] = useState(null);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [vistaActual, setVistaActual] = useState('inicio');
   const [acordeonAbierto, setAcordeonAbierto] = useState(false);
@@ -23,13 +23,22 @@ export function UIProvider({ children }) {
   const izquierdaSidebar2 = izquierdaSidebar1 + ANCHO_SIDEBAR1;
   const izquierdaSidebar3 = izquierdaSidebar1 + ANCHO_SIDEBAR1;
 
+  function toggleSidebar5() {
+    if (sidebar5Abierto) setPanelControlActivo(null);
+    setSidebar5Abierto((a) => !a);
+  }
+  function cerrarSidebar5() {
+    setSidebar5Abierto(false);
+    setPanelControlActivo(null);
+  }
+
   const value = {
     sidebar2Abierto, setSidebar2Abierto,
     sidebar3Abierto, setSidebar3Abierto,
     sidebar4Abierto, setSidebar4Abierto,
-    sidebar5Abierto, setSidebar5Abierto,
+    sidebar5Abierto, toggleSidebar5, cerrarSidebar5,
     sidebar5Ancho, setSidebar5Ancho,
-    calendarizacionMensualAbierto, setCalendarizacionMensualAbierto,
+    panelControlActivo, setPanelControlActivo,
     terminoBusqueda, setTerminoBusqueda,
     vistaActual, setVistaActual,
     acordeonAbierto, setAcordeonAbierto,

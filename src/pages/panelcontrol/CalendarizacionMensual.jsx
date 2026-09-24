@@ -4,9 +4,9 @@ import BotonAgregar from '../../components/L2/BotonAgregar.jsx';
 import { useUI } from '../../context/UIContext.jsx';
 
 export function BotonNuevoCalendarioMensual() {
-  const { calendarizacionMensualAbierto } = useUI();
+  const { panelControlActivo } = useUI();
 
-  if (!calendarizacionMensualAbierto) return null;
+  if (panelControlActivo !== 'calendarizacionMensual') return null;
 
   return (
     <BotonAgregar etiqueta="Nuevo calendario">+</BotonAgregar>
@@ -14,7 +14,7 @@ export function BotonNuevoCalendarioMensual() {
 }
 
 export default function CalendarizacionMensual() {
-  const { setSidebar5Ancho, setCalendarizacionMensualAbierto } = useUI();
+  const { setSidebar5Ancho, setPanelControlActivo } = useUI();
 
   useEffect(() => {
     setSidebar5Ancho(true);
@@ -23,7 +23,7 @@ export default function CalendarizacionMensual() {
 
   return (
     <div style={{ margin: '16px 20px' }}>
-      <BotonS onClick={() => setCalendarizacionMensualAbierto(false)}>Volver</BotonS>
+      <BotonS onClick={() => setPanelControlActivo(null)}>Volver</BotonS>
     </div>
   );
 }

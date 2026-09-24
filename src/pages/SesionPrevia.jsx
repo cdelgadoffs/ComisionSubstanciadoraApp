@@ -5,6 +5,7 @@ import Sidebar5 from '../components/L1/Sidebar5.jsx';
 import PanelPrincipal from '../components/L1/PanelPrincipal.jsx';
 import MenuPrincipalSesion from '../components/L3/MenuPrincipalSesion.jsx';
 import BotonSalirSesion from '../components/L3/BotonSalirSesion.jsx';
+import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/L3/MenuPanelControl.jsx';
 import { useUI, ANCHO_SIDEBAR3 } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
 import '../styles/pages/SesionPrevia.css';
@@ -13,7 +14,8 @@ export default function SesionPrevia() {
   const {
     izquierdaSidebar1, izquierdaSidebar3,
     sidebar3Abierto, setSidebar3Abierto,
-    sidebar5Abierto, setSidebar5Abierto,
+    sidebar5Abierto, toggleSidebar5, cerrarSidebar5,
+    sidebar5Ancho,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
   const { sesionActual, nuevoPunto } = useProyecto();
@@ -22,7 +24,7 @@ export default function SesionPrevia() {
   return (
     <>
       <Topbar
-        onToggleSidebar={() => setSidebar5Abierto((a) => !a)}
+        onToggleSidebar={toggleSidebar5}
         terminoBusqueda={terminoBusqueda}
         onCambiarBusqueda={setTerminoBusqueda}
       >
@@ -43,8 +45,12 @@ export default function SesionPrevia() {
       />
       <Sidebar5
         abierto={sidebar5Abierto}
-        onCerrar={() => setSidebar5Abierto(false)}
-      />
+        ancho={sidebar5Ancho}
+        accionesHeader={<AccionesHeaderPanelControl />}
+        onCerrar={cerrarSidebar5}
+      >
+        <MenuPanelControl />
+      </Sidebar5>
       <PanelPrincipal izquierda={panelIzquierda}>
         <div className="pg-sesion-previa">
           <h1 className="pg-sesion-previa-titulo">Celebrar sesión</h1>
