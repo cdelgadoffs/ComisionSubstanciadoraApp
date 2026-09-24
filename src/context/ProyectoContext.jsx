@@ -30,8 +30,10 @@ const SECCIONES_DOCUMENTO = [
   { id: 'asuntos generales', nombre: 'Asuntos generales', badge: 0 },
 ];
 
+const FECHAS_SESIONES = [];
+
 export function ProyectoProvider({ children }) {
-  const value = { sesionActual, sesionEnCurso, nuevoPunto, VISTAS_MENU_PRINCIPAL, SECCIONES_DOCUMENTO };
+  const value = { sesionActual, sesionEnCurso, nuevoPunto, VISTAS_MENU_PRINCIPAL, SECCIONES_DOCUMENTO, FECHAS_SESIONES };
   return <ProyectoContext.Provider value={value}>{children}</ProyectoContext.Provider>;
 }
 

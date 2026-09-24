@@ -3,6 +3,8 @@ import { createContext, useContext, useState } from 'react';
 export const ANCHO_SIDEBAR1 = 270;
 export const ANCHO_SIDEBAR2 = 250;
 export const ANCHO_SIDEBAR3 = 500;
+export const ALTO_TOPBAR = 52;
+export const ALTO_CINTA = 50;
 
 const UIContext = createContext(null);
 
