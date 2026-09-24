@@ -1,0 +1,14 @@
+.pg-acta-sesion {
+  text-align: center;
+}
+.pg-acta-sesion-titulo {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 6px;
+}
+.pg-acta-sesion-texto {
+  font-size: 14px;
+  color: #999;
+  margin: 0;
+}

@@ -7,9 +7,9 @@ import MenuPrincipalSesion from '../components/L3/MenuPrincipalSesion.jsx';
 import BotonSalirSesion from '../components/L3/BotonSalirSesion.jsx';
 import { useUI } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
-import '../styles/pages/Inicio.css';
+import '../styles/pages/ActaSesion.css';
 
-export default function Inicio() {
+export default function ActaSesion() {
   const {
     izquierdaSidebar1, izquierdaSidebar3, panelIzquierda,
     sidebar3Abierto, setSidebar3Abierto,
@@ -45,9 +45,9 @@ export default function Inicio() {
         onCerrar={() => setSidebar5Abierto(false)}
       />
       <PanelPrincipal izquierda={panelIzquierda}>
-        <div className="pg-inicio">
-          <h1 className="pg-inicio-titulo">Inicio</h1>
-          <p className="pg-inicio-texto">Aún no hay una sesión en curso.</p>
+        <div className="pg-acta-sesion">
+          <h1 className="pg-acta-sesion-titulo">Historial</h1>
+          <p className="pg-acta-sesion-texto">Aún no hay actas generadas.</p>
         </div>
       </PanelPrincipal>
     </>

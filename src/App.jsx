@@ -1,33 +1,29 @@
 import Skeleton from './components/Skeleton.jsx';
-import Topbar from './components/L1/Topbar.jsx';
 import Sidebar4 from './components/L1/Sidebar4.jsx';
-import Sidebar5 from './components/L1/Sidebar5.jsx';
 import Inicio from './pages/Inicio.jsx';
-import BotonSalirSesion from './components/L3/BotonSalirSesion.jsx';
+import ProyectoOrdenDia from './pages/ProyectoOrdenDia.jsx';
+import SesionPrevia from './pages/SesionPrevia.jsx';
+import ActaSesion from './pages/ActaSesion.jsx';
 import { useUI } from './context/UIContext.jsx';
 import './styles/L1/L1.css';
 
+const PAGES = {
+  inicio: Inicio,
+  proyecto: ProyectoOrdenDia,
+  sesionPrevia: SesionPrevia,
+  actaSesion: ActaSesion,
+};
+
 function App() {
-  const {
-    sidebar4Abierto, setSidebar4Abierto,
-    sidebar5Abierto, setSidebar5Abierto,
-    terminoBusqueda, setTerminoBusqueda,
-  } = useUI();
+  const { vistaActual, sidebar4Abierto, setSidebar4Abierto } = useUI();
+  const Page = PAGES[vistaActual];
 
   return (
     <>
       <Skeleton>
-        <Topbar
-          onToggleSidebar={() => setSidebar5Abierto((a) => !a)}
-          terminoBusqueda={terminoBusqueda}
-          onCambiarBusqueda={setTerminoBusqueda}
-        >
-          <BotonSalirSesion />
-        </Topbar>
+        {Page && <Page />}
       </Skeleton>
-      <Inicio />
       <Sidebar4 abierto={sidebar4Abierto} onCerrar={() => setSidebar4Abierto(false)} />
-      <Sidebar5 abierto={sidebar5Abierto} onCerrar={() => setSidebar5Abierto(false)} />
     </>
   );
 }
