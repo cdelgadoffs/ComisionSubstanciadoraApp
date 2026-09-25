@@ -1,18 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import BotonS from '../../components/L2/BotonS.jsx';
 import BotonAgregar from '../../components/L2/BotonAgregar.jsx';
-import ListaExpandible from '../../components/L2/ListaExpandible.jsx';
+import CalendarioMes from '../../components/L2/CalendarioMes.jsx';
 import CardS from '../../components/L2/CardS.jsx';
 import { useUI } from '../../context/UIContext.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
-
-const DIAS_SEMANA = [
-  { id: 1, label: 'Lunes' },
-  { id: 2, label: 'Martes' },
-  { id: 3, label: 'Miércoles' },
-  { id: 4, label: 'Jueves' },
-  { id: 5, label: 'Viernes' },
-];
 
 const ESTADO_LABEL = {
   proxima: 'Próxima',
@@ -20,6 +12,11 @@ const ESTADO_LABEL = {
   pendiente: 'Pendiente',
   celebrada: 'Celebrada',
 };
+
+function mesActualISO() {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+}
 
 export function BotonNuevoCalendarioMensual() {
   const { panelControlActivo, setMostrarFormularioCalendario } = useUI();
@@ -33,68 +30,57 @@ export function BotonNuevoCalendarioMensual() {
 
 export default function CalendarizacionMensual() {
   const { setSidebar5Ancho, setPanelControlActivo, mostrarFormularioCalendario, setMostrarFormularioCalendario } = useUI();
-  const {
-    diaSesion, setDiaSesion,
-    vacaciones, agregarVacacion, eliminarVacacion,
-    FECHAS_SESIONES, sesionActivaFecha, cargarSesion,
-    generarSesionesMes,
-  } = useProyecto();
-  const [vacInicio, setVacInicio] = useState('');
-  const [vacFin, setVacFin] = useState('');
+  const { FECHAS_SESIONES, sesionActivaFecha, cargarSesion, agregarSesiones } = useProyecto();
+  const [mes, setMes] = useState(mesActualISO);
+  const [fechasSeleccionadas, setFechasSeleccionadas] = useState([]);
 
   useEffect(() => {
     setSidebar5Ancho(true);
     return () => setSidebar5Ancho(false);
   }, [setSidebar5Ancho]);
 
-  function generarCalendario() {
-    generarSesionesMes(diaSesion);
+  useLayoutEffect(() => {
+    setMostrarFormularioCalendario(FECHAS_SESIONES.length === 0);
+  }, []);
+
+  function cambiarMes(delta) {
+    const [anio, mesNum] = mes.split('-').map(Number);
+    let nuevoMes = mesNum + delta;
+    let nuevoAnio = anio;
+    if (nuevoMes < 1) { nuevoMes = 12; nuevoAnio--; }
+    if (nuevoMes > 12) { nuevoMes = 1; nuevoAnio++; }
+    setMes(`${nuevoAnio}-${String(nuevoMes).padStart(2, '0')}`);
+  }
+
+  function alternarFecha(fecha) {
+    setFechasSeleccionadas((prev) =>
+      prev.includes(fecha) ? prev.filter((f) => f !== fecha) : [...prev, fecha]
+    );
+  }
+
+  function agregar() {
+    if (fechasSeleccionadas.length === 0) return;
+    agregarSesiones(fechasSeleccionadas);
+    setFechasSeleccionadas([]);
     setMostrarFormularioCalendario(false);
   }
 
-  function manejarAgregarVacacion() {
-    if (!vacInicio || !vacFin || vacInicio > vacFin) return;
-    agregarVacacion(vacInicio, vacFin);
-    setVacInicio('');
-    setVacFin('');
-  }
-
-  const diaSeleccionado = DIAS_SEMANA.find((d) => d.id === diaSesion);
-
   return (
     <div style={{ margin: '16px 20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-      <BotonS onClick={() => setPanelControlActivo(null)}>Volver</BotonS>
+      <div style={{ alignSelf: 'flex-start' }}>
+        <BotonS onClick={() => setPanelControlActivo(null)}>Volver</BotonS>
+      </div>
 
       {mostrarFormularioCalendario ? (
         <>
-          <div>
-            <p style={{ color: '#ccc', fontSize: '12px', margin: '0 0 6px' }}>Día de sesión ordinaria</p>
-            <ListaExpandible
-              valorActual={diaSesion}
-              etiquetaActual={diaSeleccionado?.label}
-              opciones={DIAS_SEMANA}
-              onSeleccionar={setDiaSesion}
-            />
-          </div>
-
-          <div>
-            <p style={{ color: '#ccc', fontSize: '12px', margin: '0 0 6px' }}>Periodo vacacional</p>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-              <input type="date" value={vacInicio} onChange={(e) => setVacInicio(e.target.value)} />
-              <input type="date" value={vacFin} min={vacInicio} onChange={(e) => setVacFin(e.target.value)} />
-            </div>
-            <BotonS onClick={manejarAgregarVacacion}>Agregar periodo</BotonS>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-              {vacaciones.map((v, idx) => (
-                <span key={idx} style={{ fontSize: '11px', color: '#ccc', border: '1px solid #3a3a3a', borderRadius: '4px', padding: '3px 8px' }}>
-                  {v.inicio} — {v.fin}
-                  <span style={{ marginLeft: '6px', cursor: 'pointer', color: '#ef4444' }} onClick={() => eliminarVacacion(idx)}>✕</span>
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <BotonS onClick={generarCalendario}>Generar calendario del mes</BotonS>
+          <CalendarioMes
+            mes={mes}
+            onCambiarMes={cambiarMes}
+            fechasSeleccionadas={fechasSeleccionadas}
+            onSeleccionarFecha={alternarFecha}
+            diasOcupados={FECHAS_SESIONES.map((f) => f.id)}
+          />
+          <BotonS onClick={agregar}>Agregar{fechasSeleccionadas.length > 0 ? ` (${fechasSeleccionadas.length})` : ''}</BotonS>
         </>
       ) : (
         <>

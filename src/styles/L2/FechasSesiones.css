@@ -3,7 +3,6 @@
   flex-wrap: nowrap;
   align-items: center;
   gap: 10px;
-  overflow-x: auto;
   min-width: 0;
 }
 .lvl2-fechas-sesiones-vacio {

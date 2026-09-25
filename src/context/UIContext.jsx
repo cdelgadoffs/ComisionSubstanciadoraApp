@@ -25,16 +25,12 @@ export function UIProvider({ children }) {
   const izquierdaSidebar3 = izquierdaSidebar1 + ANCHO_SIDEBAR1;
 
   function toggleSidebar5() {
-    if (sidebar5Abierto) {
-      setPanelControlActivo(null);
-      setMostrarFormularioCalendario(true);
-    }
+    if (sidebar5Abierto) setPanelControlActivo(null);
     setSidebar5Abierto((a) => !a);
   }
   function cerrarSidebar5() {
     setSidebar5Abierto(false);
     setPanelControlActivo(null);
-    setMostrarFormularioCalendario(true);
   }
 
   const value = {

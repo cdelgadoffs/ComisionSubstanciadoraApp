@@ -1,0 +1,13 @@
+.lvl2-card {
+  border: 2px solid #c9c9ca;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.lvl2-card-clickable {
+  cursor: pointer;
+}
+.lvl2-card-clickable:hover {
+  border-color: #a0a0a2;
+}

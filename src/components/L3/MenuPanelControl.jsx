@@ -10,7 +10,6 @@ export function AccionesHeaderPanelControl() {
   const { panelControlActivo } = useUI();
   const item = ITEMS_PANEL_CONTROL.find((i) => i.id === panelControlActivo);
   if (!item || !item.AccionHeader) return null;
-
   const AccionHeader = item.AccionHeader;
   return <AccionHeader />;
 }

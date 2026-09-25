@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { guardarSesiones, obtenerSesiones } from '../services/indexedDB.js';
 
 const ProyectoContext = createContext(null);
 
@@ -14,8 +15,22 @@ function fechaISO(d) {
   return `${y}-${m}-${dia}`;
 }
 
-function enVacaciones(iso, vacaciones) {
-  return vacaciones.some((v) => iso >= v.inicio && iso <= v.fin);
+function recalcularSesiones(idsFechas) {
+  const hoyISO = fechaISO(new Date());
+  const ordenadas = [...idsFechas].sort();
+  const proxima = ordenadas.find((f) => f >= hoyISO);
+  return ordenadas.map((iso, i) => {
+    const fecha = new Date(iso + 'T00:00:00');
+    let estado = 'pendiente';
+    if (iso === proxima) estado = 'proxima';
+    else if (iso < hoyISO) estado = 'no-celebrada';
+    return {
+      id: iso,
+      numeroSesion: i + 1,
+      label: `${fecha.getDate()} de ${MESES[fecha.getMonth()]}`,
+      estado,
+    };
+  });
 }
 
 const sesionActual = {
@@ -47,46 +62,21 @@ const SECCIONES_DOCUMENTO = [
 ];
 
 export function ProyectoProvider({ children }) {
-  const [diaSesion, setDiaSesion] = useState(3);
-  const [vacaciones, setVacaciones] = useState([]);
   const [fechasSesiones, setFechasSesiones] = useState([]);
   const [sesionActivaFecha, setSesionActivaFecha] = useState(null);
 
-  function generarSesionesMes(diaSemana) {
-    const hoy = new Date();
-    const anio = hoy.getFullYear();
-    const mes = hoy.getMonth();
-    const hoyISO = fechaISO(hoy);
-    const fechas = [];
-    const cursor = new Date(anio, mes, 1);
-    while (cursor.getMonth() === mes) {
-      if (cursor.getDay() === diaSemana) {
-        const iso = fechaISO(cursor);
-        if (!enVacaciones(iso, vacaciones)) fechas.push(iso);
-      }
-      cursor.setDate(cursor.getDate() + 1);
-    }
-    const proxima = fechas.find((f) => f >= hoyISO);
-    const generadas = fechas.map((iso, i) => {
-      const fecha = new Date(iso + 'T00:00:00');
-      let estado = 'pendiente';
-      if (iso === proxima) estado = 'proxima';
-      else if (iso < hoyISO) estado = 'no-celebrada';
-      return {
-        id: iso,
-        numeroSesion: i + 1,
-        label: `${fecha.getDate()} de ${MESES[fecha.getMonth()]}`,
-        estado,
-      };
-    });
-    setFechasSesiones(generadas);
-  }
+  useEffect(() => {
+    obtenerSesiones().then(setFechasSesiones);
+  }, []);
 
-  function agregarVacacion(inicio, fin) {
-    setVacaciones((v) => [...v, { inicio, fin }]);
-  }
-  function eliminarVacacion(idx) {
-    setVacaciones((v) => v.filter((_, i) => i !== idx));
+  function agregarSesiones(fechas) {
+    setFechasSesiones((prev) => {
+      const ids = new Set(prev.map((f) => f.id));
+      fechas.forEach((f) => ids.add(f));
+      const nuevas = recalcularSesiones([...ids]);
+      guardarSesiones(nuevas);
+      return nuevas;
+    });
   }
   function cargarSesion(fecha) {
     setSesionActivaFecha(fecha);
@@ -95,10 +85,8 @@ export function ProyectoProvider({ children }) {
   const value = {
     sesionActual, sesionEnCurso, nuevoPunto, VISTAS_MENU_PRINCIPAL, SECCIONES_DOCUMENTO,
     FECHAS_SESIONES: fechasSesiones,
-    diaSesion, setDiaSesion,
-    vacaciones, agregarVacacion, eliminarVacacion,
     sesionActivaFecha, cargarSesion,
-    generarSesionesMes,
+    agregarSesiones,
   };
   return <ProyectoContext.Provider value={value}>{children}</ProyectoContext.Provider>;
 }
