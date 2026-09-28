@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
-import BotonS from '../../components/L2/BotonS.jsx';
-import BotonAgregar from '../../components/L2/BotonAgregar.jsx';
-import CalendarioMes from '../../components/L2/CalendarioMes.jsx';
-import CardS from '../../components/L2/CardS.jsx';
+import BotonS from '../../components/base/BotonS.jsx';
+import BotonAgregar from '../../components/base/BotonAgregar.jsx';
+import CalendarioMes from '../../components/base/CalendarioMes.jsx';
+import CardS from '../../components/base/CardS.jsx';
 import { useUI } from '../../context/UIContext.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
 

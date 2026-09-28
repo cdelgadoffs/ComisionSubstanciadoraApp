@@ -1,0 +1,28 @@
+.widget-topbar {
+  height: 52px;
+  min-height: 48px;
+  background: #1a1a1a;
+  color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+  z-index: 1000;
+  border-bottom: 2px solid #2a2a2a;
+}
+.widget-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.widget-topbar-logo {
+  height: 50px;
+  width: auto;
+  margin-right: 8px;
+}
+.widget-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}

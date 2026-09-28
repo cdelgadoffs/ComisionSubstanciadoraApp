@@ -1,11 +1,10 @@
 import Skeleton from './components/Skeleton.jsx';
-import Sidebar4 from './components/L1/Sidebar4.jsx';
+import Sidebar4 from './components/base/Sidebar4.jsx';
 import Inicio from './pages/Inicio.jsx';
 import ProyectoOrdenDia from './pages/ProyectoOrdenDia.jsx';
 import SesionPrevia from './pages/SesionPrevia.jsx';
 import Historial from './pages/Historial.jsx';
 import { useUI } from './context/UIContext.jsx';
-import './styles/L1/L1.css';
 
 const PAGES = {
   inicio: Inicio,

@@ -1,12 +1,12 @@
-import Topbar from '../components/L1/Topbar.jsx';
-import Sidebar1 from '../components/L1/Sidebar1.jsx';
-import Sidebar2 from '../components/L1/Sidebar2.jsx';
-import Sidebar3 from '../components/L1/Sidebar3.jsx';
-import Sidebar5 from '../components/L1/Sidebar5.jsx';
-import PanelPrincipal from '../components/L1/PanelPrincipal.jsx';
-import MenuPrincipalSesion from '../components/L3/MenuPrincipalSesion.jsx';
-import BotonSalirSesion from '../components/L3/BotonSalirSesion.jsx';
-import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/L3/MenuPanelControl.jsx';
+import Topbar from '../components/widgets/Topbar.jsx';
+import Sidebar1 from '../components/base/Sidebar1.jsx';
+import Sidebar2 from '../components/base/Sidebar2.jsx';
+import Sidebar3 from '../components/base/Sidebar3.jsx';
+import Sidebar5 from '../components/base/Sidebar5.jsx';
+import PanelPrincipal from '../components/base/PanelPrincipal.jsx';
+import MenuPrincipalSesion from '../components/widgets/MenuPrincipalSesion.jsx';
+import BotonSalirSesion from '../components/widgets/BotonSalirSesion.jsx';
+import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
 import { useUI, ANCHO_SIDEBAR2, ANCHO_SIDEBAR3 } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
 import '../styles/pages/Historial.css';
@@ -44,15 +44,15 @@ export default function Historial() {
       <Sidebar2
         abierto={sidebar2Abierto}
         izquierda={izquierdaSidebar2}
-        onCerrar={() => setSidebar2Abierto(false)}
         badge={sesionEnCurso.badge}
         subtitulo={sesionEnCurso.subtitulo}
+        onCerrar={() => setSidebar2Abierto(false)}
       />
       <Sidebar3
         abierto={sidebar3Abierto}
         izquierda={izquierdaSidebar3}
-        onCerrar={() => setSidebar3Abierto(false)}
         badge={nuevoPunto.badge}
+        onCerrar={() => setSidebar3Abierto(false)}
       />
       <Sidebar5
         abierto={sidebar5Abierto}

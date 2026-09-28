@@ -1,12 +1,12 @@
-import Topbar from '../components/L1/Topbar.jsx';
-import CintaSesiones from '../components/L1/CintaSesiones.jsx';
-import Sidebar1 from '../components/L1/Sidebar1.jsx';
-import Sidebar3 from '../components/L1/Sidebar3.jsx';
-import Sidebar5 from '../components/L1/Sidebar5.jsx';
-import PanelPrincipal from '../components/L1/PanelPrincipal.jsx';
-import MenuPrincipalSesion from '../components/L3/MenuPrincipalSesion.jsx';
-import BotonSalirSesion from '../components/L3/BotonSalirSesion.jsx';
-import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/L3/MenuPanelControl.jsx';
+import Topbar from '../components/widgets/Topbar.jsx';
+import CintaSesiones from '../components/widgets/CintaSesiones.jsx';
+import Sidebar1 from '../components/base/Sidebar1.jsx';
+import Sidebar3 from '../components/base/Sidebar3.jsx';
+import Sidebar5 from '../components/base/Sidebar5.jsx';
+import PanelPrincipal from '../components/base/PanelPrincipal.jsx';
+import MenuPrincipalSesion from '../components/widgets/MenuPrincipalSesion.jsx';
+import BotonSalirSesion from '../components/widgets/BotonSalirSesion.jsx';
+import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
 import { useUI, ANCHO_SIDEBAR3, ALTO_TOPBAR, ALTO_CINTA } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
 import '../styles/pages/ProyectoOrdenDia.css';
@@ -46,8 +46,8 @@ export default function ProyectoOrdenDia() {
         abierto={sidebar3Abierto}
         izquierda={izquierdaSidebar3}
         arriba={arribaSidebar}
-        onCerrar={() => setSidebar3Abierto(false)}
         badge={nuevoPunto.badge}
+        onCerrar={() => setSidebar3Abierto(false)}
       />
       <Sidebar5
         abierto={sidebar5Abierto}
