@@ -29,11 +29,6 @@ function recalcularSesiones(idsFechas) {
   });
 }
 
-const sesionActual = {
-  titulo: 'Sesión Ordinaria N° 1',
-  subtitulo: 'Fecha por definir',
-};
-
 const sesionEnCurso = {
   badge: 'Sesión en curso',
   subtitulo: '0 puntos',
@@ -59,6 +54,12 @@ export function ProyectoProvider({ children }) {
     obtenerSesiones().then(setFechasSesiones);
   }, []);
 
+  useEffect(() => {
+    if (sesionActivaFecha !== null) return;
+    const proxima = fechasSesiones.find((f) => f.estado === 'proxima');
+    if (proxima) setSesionActivaFecha(proxima.id);
+  }, [fechasSesiones, sesionActivaFecha]);
+
   function agregarSesiones(fechas) {
     setFechasSesiones((prev) => {
       const ids = new Set(prev.map((f) => f.id));
@@ -74,6 +75,11 @@ export function ProyectoProvider({ children }) {
   function finalizarSesion() {
     setSesionFinalizada(true);
   }
+
+  const sesionSeleccionada = fechasSesiones.find((f) => f.id === sesionActivaFecha);
+  const sesionActual = sesionSeleccionada
+    ? { titulo: `Sesión Ordinaria N° ${sesionSeleccionada.numeroSesion}`, subtitulo: sesionSeleccionada.label }
+    : { titulo: 'Sesión Ordinaria', subtitulo: 'Fecha por definir' };
 
   const VISTAS_MENU_PRINCIPAL = [
     { id: 'inicio', label: 'Inicio' },

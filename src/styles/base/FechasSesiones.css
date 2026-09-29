@@ -49,6 +49,12 @@
   border-color: #ccc;
 }
 .base-badge-fecha-activa {
+  font-size: 12px;
   font-weight: 700;
+  padding: 4px 11px;
+  margin: 0 4px;
   transform: scale(1.03);
+}
+.base-badge-fecha-activa:hover {
+  transform: scale(1.06);
 }
