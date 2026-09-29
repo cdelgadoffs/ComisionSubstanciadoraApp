@@ -14,7 +14,7 @@ export default function SesionPrevia() {
   const {
     izquierdaSidebar1, izquierdaSidebar3,
     sidebar3Abierto, setSidebar3Abierto,
-    sidebar5Abierto, toggleSidebar5, cerrarSidebar5,
+    sidebar5Abierto, cerrarSidebar5,
     sidebar5Ancho,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
@@ -24,7 +24,6 @@ export default function SesionPrevia() {
   return (
     <>
       <Topbar
-        onToggleSidebar={toggleSidebar5}
         terminoBusqueda={terminoBusqueda}
         onCambiarBusqueda={setTerminoBusqueda}
       >

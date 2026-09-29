@@ -16,7 +16,7 @@ export default function Historial() {
     izquierdaSidebar1, izquierdaSidebar2, izquierdaSidebar3,
     sidebar2Abierto, setSidebar2Abierto,
     sidebar3Abierto, setSidebar3Abierto,
-    sidebar5Abierto, toggleSidebar5, cerrarSidebar5,
+    sidebar5Abierto, cerrarSidebar5,
     sidebar5Ancho,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
@@ -28,7 +28,6 @@ export default function Historial() {
   return (
     <>
       <Topbar
-        onToggleSidebar={toggleSidebar5}
         terminoBusqueda={terminoBusqueda}
         onCambiarBusqueda={setTerminoBusqueda}
       >
