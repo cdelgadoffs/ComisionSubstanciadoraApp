@@ -18,7 +18,7 @@ export default function Inicio() {
     sidebar5Ancho,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
-  const { sesionActual, nuevoPunto, FECHAS_SESIONES } = useProyecto();
+  const { sesionActual, nuevoPunto } = useProyecto();
   const panelIzquierda = izquierdaSidebar3 + (sidebar3Abierto ? ANCHO_SIDEBAR3 : 0);
   const arriba = ALTO_TOPBAR + ALTO_CINTA;
   const arribaSidebar = arriba - 1;
@@ -29,7 +29,7 @@ export default function Inicio() {
         terminoBusqueda={terminoBusqueda}
         onCambiarBusqueda={setTerminoBusqueda}
       />
-      <CintaSesiones fechas={FECHAS_SESIONES} textoVacio="Aún no hay sesiones programadas." />
+      <CintaSesiones textoVacio="Aún no hay sesiones programadas." />
       <Sidebar1
         izquierda={izquierdaSidebar1}
         arriba={arribaSidebar}

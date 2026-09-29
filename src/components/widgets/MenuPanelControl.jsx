@@ -1,9 +1,11 @@
 import BotonSeleccionablePanel from '../base/BotonSeleccionablePanel.jsx';
 import CalendarizacionMensual, { BotonNuevoCalendarioMensual } from '../../pages/panelcontrol/CalendarizacionMensual.jsx';
+import Quorum from '../../pages/panelcontrol/Quorum.jsx';
 import { useUI } from '../../context/UIContext.jsx';
 
 const ITEMS_PANEL_CONTROL = [
   { id: 'calendarizacionMensual', label: 'Calendarización mensual', Panel: CalendarizacionMensual, AccionHeader: BotonNuevoCalendarioMensual },
+  { id: 'quorum', label: 'Quorum', Panel: Quorum },
 ];
 
 export function AccionesHeaderPanelControl() {

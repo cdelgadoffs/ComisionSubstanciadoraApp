@@ -1,12 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { guardarSesiones, obtenerSesiones } from '../services/indexedDB.js';
+import { MESES } from '../utils/meses.js';
 
 const ProyectoContext = createContext(null);
-
-const MESES = [
-  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
-];
 
 function fechaISO(d) {
   const y = d.getFullYear();
@@ -47,13 +43,6 @@ const nuevoPunto = {
   badge: 'Nuevo punto',
 };
 
-const VISTAS_MENU_PRINCIPAL = [
-  { id: 'inicio', label: 'Inicio' },
-  { id: 'proyecto', label: 'Proyecto del orden del día', badge: 0, expandible: true },
-  { id: 'sesionPrevia', label: 'Celebrar sesión' },
-  { id: 'actaSesion', label: 'Historial' },
-];
-
 const SECCIONES_DOCUMENTO = [
   { id: 'informes', nombre: 'Informes', badge: 0 },
   { id: 'dictamenes', nombre: 'Dictámenes', badge: 0 },
@@ -64,6 +53,7 @@ const SECCIONES_DOCUMENTO = [
 export function ProyectoProvider({ children }) {
   const [fechasSesiones, setFechasSesiones] = useState([]);
   const [sesionActivaFecha, setSesionActivaFecha] = useState(null);
+  const [sesionFinalizada, setSesionFinalizada] = useState(false);
 
   useEffect(() => {
     obtenerSesiones().then(setFechasSesiones);
@@ -81,11 +71,22 @@ export function ProyectoProvider({ children }) {
   function cargarSesion(fecha) {
     setSesionActivaFecha(fecha);
   }
+  function finalizarSesion() {
+    setSesionFinalizada(true);
+  }
+
+  const VISTAS_MENU_PRINCIPAL = [
+    { id: 'inicio', label: 'Inicio' },
+    { id: 'proyecto', label: 'Proyecto del orden del día', badge: 0, expandible: true },
+    { id: 'sesionPrevia', label: sesionFinalizada ? 'Sesión celebrada' : 'Celebrar sesión' },
+    { id: 'actaSesion', label: 'Historial' },
+  ];
 
   const value = {
     sesionActual, sesionEnCurso, nuevoPunto, VISTAS_MENU_PRINCIPAL, SECCIONES_DOCUMENTO,
     FECHAS_SESIONES: fechasSesiones,
     sesionActivaFecha, cargarSesion,
+    sesionFinalizada, finalizarSesion,
     agregarSesiones,
   };
   return <ProyectoContext.Provider value={value}>{children}</ProyectoContext.Provider>;

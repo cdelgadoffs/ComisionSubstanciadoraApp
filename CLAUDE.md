@@ -75,6 +75,11 @@ Estos archivos "de excepción" **solo son visibles/montables dentro de `Sidebar5
 - I/O externo puro (hoy: IndexedDB nativo, sin librerías). Funciones async simples, sin JSX, sin conocimiento de React.
 - Solo los llama `context/`, nunca componentes directamente.
 
+### `utils/` — datos y funciones de referencia puros
+- Constantes/funciones **estáticas y reutilizables sin estado**, sin JSX, sin conocimiento de React ni de contexto (ej. `MESES`, formateo de fechas). No es "estado de negocio" (eso es `context/`) ni I/O externo (eso es `services/`) — es la tercera categoría: datos de referencia que cualquier capa puede necesitar.
+- **No se duplica el mismo dato/función en dos archivos porque cada uno lo necesita.** Si tanto `context/` como un `widget` necesitan lo mismo (precedente: `MESES` estaba hardcodeado igual en `ProyectoContext.jsx` y en `CintaSesiones.jsx`), se extrae una sola vez a `utils/` y ambos importan de ahí — nunca se decide "cuál de los dos es el dueño", porque ninguno lo es.
+- Lo importan tanto `context/` como `components/` (`base/` o `widgets/`) libremente, ya que no tiene ninguna de las restricciones de capa (no es un componente, no toca contexto).
+
 ### `App.jsx`
 - Decide el routing (`vistaActual` → `PAGES` map) y monta las piezas verdaderamente globales que no pertenecen a ninguna page (hoy solo `Sidebar4`).
 - No conoce el estado interno de ninguna page ni de Sidebar5 — esa lógica de cierre/reset vive centralizada en `UIContext` (ver `toggleSidebar5`/`cerrarSidebar5`), nunca duplicada en cada page ni empujada a `App.jsx`.
@@ -109,6 +114,6 @@ Ya está completo y no requiere más trabajo salvo que se pida explícitamente:
 
 - Autenticación real con MSAL (`AuthContext`, `LoginGate`, `BloqueadoGate`) — pausado hasta tener `clientId`/`authority` de un App Registration propio para esta app.
 - Sistema de permisos/roles que alimentaría `BloqueadoGate` — de momento no existe; cualquier cuenta autenticada pasaría.
-- `catalogs/`, `hooks/`, `utils/` — carpetas existentes pero vacías.
+- `catalogs/`, `hooks/` — carpetas existentes pero vacías. `utils/` ya tiene contenido (`meses.js`).
 - `Sidebar2` — construido pero "parqueado" (usado hoy solo en `Historial.jsx`).
 - `Sidebar4` — montado desde `App.jsx` pero sin ningún trigger de apertura conectado todavía (solo existe el cierre); no iniciar esa conexión sin que se pida.
