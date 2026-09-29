@@ -1,10 +1,13 @@
 import BuscadorGlobal from '../base/BuscadorGlobal.jsx';
 import FechaDia from '../base/FechaDia.jsx';
+import BotonS from '../base/BotonS.jsx';
 import { useUI } from '../../context/UIContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import '../../styles/widgets/Topbar.css';
 
-export default function Topbar({ terminoBusqueda, onCambiarBusqueda, children }) {
+export default function Topbar({ terminoBusqueda, onCambiarBusqueda }) {
   const { toggleSidebar5 } = useUI();
+  const { cerrarSesion } = useAuth();
 
   return (
     <header className="widget-topbar">
@@ -19,7 +22,7 @@ export default function Topbar({ terminoBusqueda, onCambiarBusqueda, children })
       <div className="widget-topbar-right">
         <BuscadorGlobal value={terminoBusqueda} onChange={onCambiarBusqueda} placeholder="Buscar punto..." />
         <FechaDia />
-        {children}
+        <BotonS onClick={cerrarSesion}>Salir</BotonS>
       </div>
     </header>
   );

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import '../../styles/widgets/ListaExpandible.css';
+import '../../styles/base/ListaExpandible.css';
 
 export default function ListaExpandible({ valorActual, etiquetaActual, opciones, onSeleccionar }) {
   const [abierto, setAbierto] = useState(false);
@@ -44,22 +44,22 @@ export default function ListaExpandible({ valorActual, etiquetaActual, opciones,
     <>
       <div
         ref={botonRef}
-        className={'widget-lista-expandible-toggle' + (abierto ? ' widget-lista-expandible-toggle-abierto' : '')}
+        className={'base-lista-expandible-toggle' + (abierto ? ' base-lista-expandible-toggle-abierto' : '')}
         onClick={toggle}
       >
         {etiquetaActual}
-        <span className="widget-lista-expandible-chevron">▾</span>
+        <span className="base-lista-expandible-chevron">▾</span>
       </div>
       {abierto && (
         <div
           ref={menuRef}
-          className="widget-lista-expandible-menu"
+          className="base-lista-expandible-menu"
           style={{ top: pos.top, left: pos.left, minWidth: pos.width }}
         >
           {opciones.map((op) => (
             <div
               key={op.id}
-              className={'widget-lista-expandible-item' + (op.id === valorActual ? ' widget-lista-expandible-item-activo' : '')}
+              className={'base-lista-expandible-item' + (op.id === valorActual ? ' base-lista-expandible-item-activo' : '')}
               onClick={() => { onSeleccionar(op.id); setAbierto(false); }}
             >
               {op.label}

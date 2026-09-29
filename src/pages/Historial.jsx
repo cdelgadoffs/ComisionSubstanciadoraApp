@@ -5,7 +5,6 @@ import Sidebar3 from '../components/base/Sidebar3.jsx';
 import Sidebar5 from '../components/base/Sidebar5.jsx';
 import PanelPrincipal from '../components/base/PanelPrincipal.jsx';
 import MenuPrincipalSesion from '../components/widgets/MenuPrincipalSesion.jsx';
-import BotonSalirSesion from '../components/widgets/BotonSalirSesion.jsx';
 import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
 import { useUI, ANCHO_SIDEBAR2, ANCHO_SIDEBAR3 } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
@@ -30,9 +29,7 @@ export default function Historial() {
       <Topbar
         terminoBusqueda={terminoBusqueda}
         onCambiarBusqueda={setTerminoBusqueda}
-      >
-        <BotonSalirSesion />
-      </Topbar>
+      />
       <Sidebar1
         izquierda={izquierdaSidebar1}
         titulo={sesionActual.titulo}
