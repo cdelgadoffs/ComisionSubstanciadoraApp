@@ -5,14 +5,18 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: transform 0.25s ease, left 0.25s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
   width: 500px;
   border-right: 1px solid #d0d0d0;
   background: #eaeaea;
   z-index: 30;
 }
 .base-sidebar3-oculto {
-  transform: translateX(-100vw);
+  transform: translateX(-100%);
+  opacity: 0;
   pointer-events: none;
 }
 
