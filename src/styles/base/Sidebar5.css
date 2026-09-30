@@ -67,8 +67,30 @@
 .base-sidebar5-cerrar:hover {
   opacity: 1;
 }
-.base-sidebar5-nav {
-  padding: 8px 0;
+.base-sidebar5-nav-wrap {
+  position: relative;
   flex: 1;
+  overflow: hidden;
+}
+.base-sidebar5-nav {
+  height: 100%;
+  padding: 8px 0;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.base-sidebar5-nav::-webkit-scrollbar {
+  display: none;
+}
+.base-sidebar5-scrollbar-thumb {
+  position: absolute;
+  right: 2px;
+  width: 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.base-sidebar5-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
 }

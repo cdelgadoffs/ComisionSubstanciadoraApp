@@ -1,13 +1,13 @@
 import { useScrollbarPersonalizada } from '../../hooks/useScrollbarPersonalizada.js';
-import '../../styles/base/PanelPrincipal.css';
+import '../../styles/base/Scrollbar.css';
 
-export default function PanelPrincipal({ izquierda = 0, arriba = 52, children }) {
+export default function Scrollbar({ children }) {
   const { contenedorRef, thumb, onScroll, onArrastrarThumb } = useScrollbarPersonalizada();
   return (
-    <div className="base-panel-principal-wrap" style={{ left: izquierda, top: arriba, height: `calc(100vh - ${arriba}px)` }}>
-      <main className="base-panel-principal" ref={contenedorRef} onScroll={onScroll}>
+    <div className="base-scrollbar-wrap">
+      <div className="base-scrollbar" ref={contenedorRef} onScroll={onScroll}>
         {children}
-      </main>
+      </div>
       {thumb.visible && (
         <div
           className="base-scrollbar-thumb"

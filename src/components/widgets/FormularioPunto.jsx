@@ -6,6 +6,7 @@ import BotonS from '../base/BotonS.jsx';
 import BotonIcono from '../base/BotonIcono.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
 import { useUI } from '../../context/UIContext.jsx';
+import { useScrollbarPersonalizada } from '../../hooks/useScrollbarPersonalizada.js';
 import '../../styles/widgets/FormularioPunto.css';
 
 const REMITENTES = ['Pleno', 'Presidencia', 'Secretaría General'];
@@ -25,6 +26,7 @@ export default function FormularioPunto() {
   const { SECCIONES_DOCUMENTO, agregarPunto } = useProyecto();
   const { sidebar3Abierto, setSidebar3Abierto, seccionNuevoPunto } = useUI();
   const [form, setForm] = useState(() => estadoVacio(seccionNuevoPunto));
+  const { contenedorRef, thumb, onScroll, onArrastrarThumb } = useScrollbarPersonalizada();
 
   useEffect(() => {
     if (sidebar3Abierto) setForm(estadoVacio(seccionNuevoPunto));
@@ -67,7 +69,8 @@ export default function FormularioPunto() {
   const puedeConfirmar = form.contenido.trim().length > 0 && (esInforme || form.acuerdo.trim().length > 0);
 
   return (
-    <div className="widget-formulario-punto" key={form.seccion}>
+    <div className="widget-formulario-punto-wrap">
+      <div className="widget-formulario-punto" key={form.seccion} ref={contenedorRef} onScroll={onScroll}>
       <div className="widget-formulario-punto-fila">
         <div className="widget-formulario-punto-campo">
           <label className="widget-formulario-punto-label">Sección</label>
@@ -130,6 +133,14 @@ export default function FormularioPunto() {
           <BotonS variant="claro" onClick={confirmar} disabled={!puedeConfirmar}>Añadir</BotonS>
         </div>
       </div>
+      </div>
+      {thumb.visible && (
+        <div
+          className="widget-formulario-punto-scrollbar-thumb"
+          style={{ height: thumb.alto, top: thumb.top }}
+          onMouseDown={onArrastrarThumb}
+        />
+      )}
     </div>
   );
 }

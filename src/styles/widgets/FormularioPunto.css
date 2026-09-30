@@ -1,3 +1,9 @@
+.widget-formulario-punto-wrap {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+}
 .widget-formulario-punto {
   flex: 1;
   overflow-y: auto;
@@ -7,6 +13,23 @@
   flex-direction: column;
   gap: 14px;
   animation: widget-formulario-punto-cambio 0.2s ease;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.widget-formulario-punto::-webkit-scrollbar {
+  display: none;
+}
+.widget-formulario-punto-scrollbar-thumb {
+  position: absolute;
+  right: 2px;
+  width: 6px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.widget-formulario-punto-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
 }
 @keyframes widget-formulario-punto-cambio {
   from { opacity: 0.4; transform: translateX(-6px); }

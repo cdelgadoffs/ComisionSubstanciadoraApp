@@ -1,6 +1,8 @@
+import { useScrollbarPersonalizada } from '../../hooks/useScrollbarPersonalizada.js';
 import '../../styles/base/Sidebar5.css';
 
 export default function Sidebar5({ abierto = false, ancho = false, arriba = 52, accionesHeader, onCerrar, mostrarCerrar = true, children }) {
+  const { contenedorRef, thumb, onScroll, onArrastrarThumb } = useScrollbarPersonalizada();
   return (
     <aside
       className={'base-sidebar5' + (abierto ? ' base-sidebar5-open' : '') + (ancho ? ' base-sidebar5-ancho' : '')}
@@ -17,7 +19,16 @@ export default function Sidebar5({ abierto = false, ancho = false, arriba = 52, 
           </div>
         </div>
       </div>
-      <nav className="base-sidebar5-nav">{children}</nav>
+      <div className="base-sidebar5-nav-wrap">
+        <nav className="base-sidebar5-nav" ref={contenedorRef} onScroll={onScroll}>{children}</nav>
+        {thumb.visible && (
+          <div
+            className="base-sidebar5-scrollbar-thumb"
+            style={{ height: thumb.alto, top: thumb.top }}
+            onMouseDown={onArrastrarThumb}
+          />
+        )}
+      </div>
     </aside>
   );
 }

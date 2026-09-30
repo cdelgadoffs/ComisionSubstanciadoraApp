@@ -1,6 +1,8 @@
+import { useScrollbarPersonalizada } from '../../hooks/useScrollbarPersonalizada.js';
 import '../../styles/base/Sidebar1.css';
 
 export default function Sidebar1({ izquierda = 0, arriba = 52, titulo, subtitulo, accionesHeader, children }) {
+  const { contenedorRef, thumb, onScroll, onArrastrarThumb } = useScrollbarPersonalizada();
   return (
     <aside className="base-sidebar1" style={{ left: izquierda, top: arriba, height: `calc(100vh - ${arriba}px)` }}>
       <div className="base-sidebar1-header">
@@ -10,7 +12,16 @@ export default function Sidebar1({ izquierda = 0, arriba = 52, titulo, subtitulo
         </div>
         <div className="base-sidebar1-subtitle">{subtitulo}</div>
       </div>
-      <nav className="base-sidebar1-nav">{children}</nav>
+      <div className="base-sidebar1-nav-wrap">
+        <nav className="base-sidebar1-nav" ref={contenedorRef} onScroll={onScroll}>{children}</nav>
+        {thumb.visible && (
+          <div
+            className="base-scrollbar-thumb"
+            style={{ height: thumb.alto, top: thumb.top }}
+            onMouseDown={onArrastrarThumb}
+          />
+        )}
+      </div>
     </aside>
   );
 }

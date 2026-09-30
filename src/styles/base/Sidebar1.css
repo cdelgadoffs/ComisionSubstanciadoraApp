@@ -41,8 +41,30 @@
   color: #999;
   font-weight: 700;
 }
-.base-sidebar1-nav {
-  padding: 8px 0;
+.base-sidebar1-nav-wrap {
+  position: relative;
   flex: 1;
+  overflow: hidden;
+}
+.base-sidebar1-nav {
+  height: 100%;
+  padding: 8px 0;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.base-sidebar1-nav::-webkit-scrollbar {
+  display: none;
+}
+.base-scrollbar-thumb {
+  position: absolute;
+  right: 2px;
+  width: 6px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.base-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.28);
 }
