@@ -11,19 +11,23 @@ function fechaISO(d) {
   return `${y}-${m}-${dia}`;
 }
 
-function recalcularSesiones(idsFechas) {
+function recalcularSesiones(sesiones) {
   const hoyISO = fechaISO(new Date());
-  const ordenadas = [...idsFechas].sort();
-  const proxima = ordenadas.find((f) => f >= hoyISO);
-  return ordenadas.map((iso, i) => {
-    const fecha = new Date(iso + 'T00:00:00');
+  const ordenadas = [...sesiones].sort((a, b) => (a.id < b.id ? -1 : 1));
+  const proxima = ordenadas.find((s) => s.id >= hoyISO && !s.celebrada);
+  let consecutivo = 0;
+  return ordenadas.map((s) => {
+    const fecha = new Date(s.id + 'T00:00:00');
     let estado = 'pendiente';
-    if (iso === proxima) estado = 'proxima';
-    else if (iso < hoyISO) estado = 'no-celebrada';
+    if (s.celebrada) estado = 'celebrada';
+    else if (proxima && s.id === proxima.id) estado = 'proxima';
+    else if (s.id < hoyISO) estado = 'no-celebrada';
+    if (estado !== 'no-celebrada') consecutivo += 1;
     return {
-      id: iso,
-      numeroSesion: i + 1,
+      id: s.id,
+      numeroSesion: consecutivo,
       label: `${fecha.getDate()} de ${MESES[fecha.getMonth()]}`,
+      celebrada: !!s.celebrada,
       estado,
     };
   });
@@ -48,7 +52,6 @@ const SECCIONES_DOCUMENTO_BASE = [
 export function ProyectoProvider({ children }) {
   const [fechasSesiones, setFechasSesiones] = useState([]);
   const [sesionActivaFecha, setSesionActivaFecha] = useState(null);
-  const [sesionFinalizada, setSesionFinalizada] = useState(false);
   const [puntos, setPuntos] = useState([]);
 
   useEffect(() => {
@@ -67,9 +70,11 @@ export function ProyectoProvider({ children }) {
 
   function agregarSesiones(fechas) {
     setFechasSesiones((prev) => {
-      const ids = new Set(prev.map((f) => f.id));
-      fechas.forEach((f) => ids.add(f));
-      const nuevas = recalcularSesiones([...ids]);
+      const porId = new Map(prev.map((f) => [f.id, f]));
+      fechas.forEach((id) => {
+        if (!porId.has(id)) porId.set(id, { id, celebrada: false });
+      });
+      const nuevas = recalcularSesiones([...porId.values()]);
       guardarSesiones(nuevas);
       return nuevas;
     });
@@ -78,7 +83,14 @@ export function ProyectoProvider({ children }) {
     setSesionActivaFecha(fecha);
   }
   function finalizarSesion() {
-    setSesionFinalizada(true);
+    setFechasSesiones((prev) => {
+      const actualizadas = prev.map((f) =>
+        f.id === sesionActivaFecha ? { ...f, celebrada: true } : f
+      );
+      const nuevas = recalcularSesiones(actualizadas);
+      guardarSesiones(nuevas);
+      return nuevas;
+    });
   }
   function agregarPunto(datos) {
     const nuevo = { id: crypto.randomUUID(), ...datos };
@@ -93,6 +105,7 @@ export function ProyectoProvider({ children }) {
   const sesionActual = sesionSeleccionada
     ? { titulo: `Sesión Ordinaria N° ${sesionSeleccionada.numeroSesion}`, subtitulo: sesionSeleccionada.label }
     : { titulo: 'Sesión Ordinaria', subtitulo: 'Fecha por definir' };
+  const sesionFinalizada = !!sesionSeleccionada?.celebrada;
 
   const SECCIONES_DOCUMENTO = SECCIONES_DOCUMENTO_BASE.map((s) => ({
     ...s,

@@ -92,6 +92,16 @@ Estos archivos "de excepción" **solo son visibles/montables dentro de `Sidebar5
 - **Sin sobre-ingeniería.** No crear abstracciones, wrappers, archivos CSS o capas nuevas para necesidades hipotéticas o de un solo uso. Tres líneas parecidas son mejor que una abstracción prematura.
 - **Sin comentarios en el código**, salvo que el usuario lo pida explícitamente para un caso puntual.
 
+## Flujo de trabajo de planificación (antes de implementar)
+
+Antes de escribir código para cualquier funcionalidad nueva (no aplica a preguntas conceptuales, ni a fixes triviales ya acordados explícitamente en la misma conversación), primero se explica en texto el flujo de cómo se va a construir:
+
+- Qué capas se van a tocar (`base`, `widgets`, `context`, `services`, `utils`, `pages`) y por qué cada una.
+- Qué archivos se crean y cuáles se modifican.
+- El orden en que se harán los cambios.
+
+No se escribe ni edita código todavía en ese punto — es una explicación previa, para poder detectar inconsistencias con el patrón antes de escribir una sola línea (mismo criterio ya aplicado informalmente en features anteriores: Calendarización Mensual, FormularioPunto). Se espera confirmación explícita del usuario sobre ese flujo antes de empezar a implementar.
+
 ## Flujo de trabajo de verificación
 
 1. `npm run build` primero, siempre.
@@ -122,6 +132,19 @@ Versión mínima/media completa (sin adjuntos a backend real, sin OneDrive, sin 
 - Remitentes (`Pleno`, `Presidencia`, `Secretaría General`) están **hardcodeados directamente en el widget** — son un placeholder genérico, no el organigrama real de la organización; reemplazar cuando se tenga ese dato.
 - `base/BotonIcono.jsx` — nuevo átomo genérico (botón cuadrado con un ícono, prop `icono` = clase CSS del ícono). Usa **Remix Icon** vía CDN (`cdn.jsdelivr.net/npm/remixicon`), cargado una sola vez en `index.html` (no por componente, igual que una fuente global) — es el ícono estándar del proyecto para botones de acción; no mezclar con otras librerías de íconos.
 - `Sidebar3` **se queda abierto tras "Añadir"** — solo `Cancelar` y el ✕ lo cierran. El formulario se resetea a vacío (misma sección) después de agregar, y **cambia de sección automáticamente y sin cerrar** si se hace clic en el "+" de otra sección mientras ya está abierto (el `useEffect` de `FormularioPunto` escucha tanto `sidebar3Abierto` como `seccionNuevoPunto`). Cada cambio de sección fuerza un remount vía `key={form.seccion}` en el contenedor raíz del widget, lo que dispara una animación CSS de entrada (`@keyframes` en `FormularioPunto.css`) — precedente idéntico al `key={seccionActual}` + `.ter-form { animation }` de PlenoLOCAL.
+
+## Estado actual de los badges de sesión (referencia funcional)
+
+- Cada sesión en `fechasSesiones` (context) tiene un campo propio `celebrada: boolean`, persistido en `services/indexedDB.js` junto al resto del registro.
+- `recalcularSesiones` (en `ProyectoContext.jsx`) deriva 4 estados visuales a partir de eso: `celebrada` (verde) si `celebrada === true`; `proxima` (azul) si es la fecha futura/hoy más cercana entre las no celebradas; `no-celebrada` (rojo) si ya pasó sin celebrarse; `pendiente` (gris) para el resto de futuras. Los 4 colores y el hover/`activa` más grande ya existían en `base/FechasSesiones.css` desde antes — este trabajo fue solo de `context/`, no tocó `base/` ni su CSS.
+- `agregarSesiones(fechas)` fusiona fechas nuevas con las existentes preservando su `celebrada` (nunca lo resetea al agregar más fechas al mismo mes).
+- `finalizarSesion()` marca `celebrada = true` en la sesión que sea `sesionActivaFecha` en ese momento (no un booleano genérico) y recalcula estados. `sesionFinalizada` (usado por el label del menú "Celebrar sesión"/"Sesión celebrada") se deriva de `sesionSeleccionada?.celebrada`, ya no es un `useState` aparte.
+- La selección automática de "la más próxima por defecto" y la restricción de "no mostrar una próxima falsa si el mes filtrado no la tiene" no requirieron código adicional: `proxima` es un cálculo global sobre todas las fechas, y el filtro de mes en `CintaSesiones` es solo visual — si la próxima real cae en otro mes, el mes filtrado simplemente no muestra ningún azul.
+- **Pendiente real:** `finalizarSesion()` existe en `context/` pero **ninguna page la llama todavía** — no hay un botón "Celebrar sesión" conectado. Eso es trabajo futuro, no iniciar sin que se pida.
+- `numeroSesion` (el consecutivo oficial) solo avanza en sesiones con estado `celebrada` o `proxima` — una sesión `no-celebrada` no consume número, conserva el mismo consecutivo que la última sesión válida antes de ella. Se calcula dentro del mismo `recalcularSesiones`.
+- `widgets/CintaSesiones.jsx` tiene dos `base/BotonIcono` (flechas `ri-arrow-left-s-line`/`ri-arrow-right-s-line`, iguales a los `◀`/`▶` de PlenoLOCAL) agrupados en `.widget-cinta-sesiones-nav` (su propio `gap` de 4px) antes del `ListaExpandible` de mes, para navegar mes a mes con aritmética de año/mes — navega libremente aunque el mes destino no tenga sesiones (mismo comportamiento que PlenoLOCAL). Es estado local del propio widget (`mesSeleccionadoManual`), sin tocar `context/` ni `base/BotonIcono.jsx`.
+- Un tercer `BotonIcono` (`ri-arrow-go-back-line`, "volver a la próxima sesión") vive en ese mismo grupo **solo cuando el mes filtrado no es el de la sesión global con estado `proxima`** (precedente: `mostrarBotonIrActual`/`irASesionActual` de PlenoLOCAL) — al hacer clic, filtra al mes de la próxima y además la carga como `sesionActivaFecha` vía `cargarSesion`. Se renderiza condicionalmente (`{mostrarVolverProxima && (...)}`), no permanece montado.
+- **Pendiente conocido, explícitamente revertido:** los badges de `FechasSesiones` se desplazan unos píxeles al cambiar de mes (el ancho de `ListaExpandible` varía con la longitud del nombre del mes — "Septiembre 2026" vs "Octubre 2026" — y arrastra todo lo que sigue). Se intentaron dos fixes (reservar el espacio del botón "volver" con `visibility: hidden`, y un `min-width` fijo en el toggle de mes); ambos se descartaron porque dejaban demasiado espacio en blanco visualmente. **No reintentar estos dos enfoques** sin proponer antes una alternativa distinta — no iniciar sin que se pida.
 
 ## Pendientes conocidos (no iniciar sin que se pida)
 

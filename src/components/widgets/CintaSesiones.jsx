@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import FechasSesiones from '../base/FechasSesiones.jsx';
 import ListaExpandible from '../base/ListaExpandible.jsx';
+import BotonIcono from '../base/BotonIcono.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
 import { MESES } from '../../utils/meses.js';
 import '../../styles/widgets/CintaSesiones.css';
@@ -24,8 +25,32 @@ export default function CintaSesiones({ textoVacio }) {
     ? fechas.filter((f) => f.id.substring(0, 7) === mesFiltro)
     : fechas;
 
+  const proximaGlobal = fechas.find((f) => f.estado === 'proxima');
+  const mostrarVolverProxima = proximaGlobal && proximaGlobal.id.substring(0, 7) !== mesFiltro;
+
+  function volverAProxima() {
+    setMesSeleccionadoManual(proximaGlobal.id.substring(0, 7));
+    cargarSesion(proximaGlobal.id);
+  }
+
+  function avanzarMes(delta) {
+    const [anio, mes] = mesFiltro.split('-').map(Number);
+    let nuevoMes = mes + delta;
+    let nuevoAnio = anio;
+    if (nuevoMes < 1) { nuevoMes = 12; nuevoAnio--; }
+    if (nuevoMes > 12) { nuevoMes = 1; nuevoAnio++; }
+    setMesSeleccionadoManual(`${nuevoAnio}-${String(nuevoMes).padStart(2, '0')}`);
+  }
+
   return (
     <div className="widget-cinta-sesiones">
+      <div className="widget-cinta-sesiones-nav">
+        <BotonIcono icono="ri-arrow-left-s-line" ariaLabel="Mes anterior" onClick={() => avanzarMes(-1)} />
+        <BotonIcono icono="ri-arrow-right-s-line" ariaLabel="Mes siguiente" onClick={() => avanzarMes(1)} />
+        {mostrarVolverProxima && (
+          <BotonIcono icono="ri-arrow-go-back-line" ariaLabel="Volver a la próxima sesión" onClick={volverAProxima} />
+        )}
+      </div>
       <ListaExpandible
         valorActual={mesFiltro}
         etiquetaActual={etiquetaActual}

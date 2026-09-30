@@ -9,6 +9,11 @@
   padding: 0 24px;
   flex-shrink: 0;
 }
+.widget-cinta-sesiones-nav {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
 .widget-cinta-sesiones .base-lista-expandible-toggle {
   flex-shrink: 0;
   padding: 3px 8px;
