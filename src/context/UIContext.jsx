@@ -19,6 +19,7 @@ export function UIProvider({ children }) {
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
   const [vistaActual, setVistaActual] = useState('inicio');
   const [acordeonAbierto, setAcordeonAbierto] = useState(false);
+  const [seccionNuevoPunto, setSeccionNuevoPunto] = useState(null);
 
   const izquierdaSidebar1 = 0;
   const izquierdaSidebar2 = izquierdaSidebar1 + ANCHO_SIDEBAR1;
@@ -44,6 +45,7 @@ export function UIProvider({ children }) {
     terminoBusqueda, setTerminoBusqueda,
     vistaActual, setVistaActual,
     acordeonAbierto, setAcordeonAbierto,
+    seccionNuevoPunto, setSeccionNuevoPunto,
     izquierdaSidebar1, izquierdaSidebar2, izquierdaSidebar3,
   };
 

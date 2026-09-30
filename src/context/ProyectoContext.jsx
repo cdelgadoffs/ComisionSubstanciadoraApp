@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { guardarSesiones, obtenerSesiones } from '../services/indexedDB.js';
+import { guardarSesiones, obtenerSesiones, guardarPuntos, obtenerPuntos } from '../services/indexedDB.js';
 import { MESES } from '../utils/meses.js';
 
 const ProyectoContext = createContext(null);
@@ -38,20 +38,25 @@ const nuevoPunto = {
   badge: 'Nuevo punto',
 };
 
-const SECCIONES_DOCUMENTO = [
-  { id: 'informes', nombre: 'Informes', badge: 0 },
-  { id: 'dictamenes', nombre: 'Dictámenes', badge: 0 },
-  { id: 'acuerdos', nombre: 'Acuerdos', badge: 0 },
-  { id: 'asuntos generales', nombre: 'Asuntos generales', badge: 0 },
+const SECCIONES_DOCUMENTO_BASE = [
+  { id: 'informes', nombre: 'Informes' },
+  { id: 'dictamenes', nombre: 'Dictámenes' },
+  { id: 'acuerdos', nombre: 'Acuerdos' },
+  { id: 'asuntos generales', nombre: 'Asuntos generales' },
 ];
 
 export function ProyectoProvider({ children }) {
   const [fechasSesiones, setFechasSesiones] = useState([]);
   const [sesionActivaFecha, setSesionActivaFecha] = useState(null);
   const [sesionFinalizada, setSesionFinalizada] = useState(false);
+  const [puntos, setPuntos] = useState([]);
 
   useEffect(() => {
     obtenerSesiones().then(setFechasSesiones);
+  }, []);
+
+  useEffect(() => {
+    obtenerPuntos().then(setPuntos);
   }, []);
 
   useEffect(() => {
@@ -75,15 +80,28 @@ export function ProyectoProvider({ children }) {
   function finalizarSesion() {
     setSesionFinalizada(true);
   }
+  function agregarPunto(datos) {
+    const nuevo = { id: crypto.randomUUID(), ...datos };
+    setPuntos((prev) => {
+      const nuevos = [...prev, nuevo];
+      guardarPuntos(nuevos);
+      return nuevos;
+    });
+  }
 
   const sesionSeleccionada = fechasSesiones.find((f) => f.id === sesionActivaFecha);
   const sesionActual = sesionSeleccionada
     ? { titulo: `Sesión Ordinaria N° ${sesionSeleccionada.numeroSesion}`, subtitulo: sesionSeleccionada.label }
     : { titulo: 'Sesión Ordinaria', subtitulo: 'Fecha por definir' };
 
+  const SECCIONES_DOCUMENTO = SECCIONES_DOCUMENTO_BASE.map((s) => ({
+    ...s,
+    badge: puntos.filter((p) => p.seccion === s.id).length,
+  }));
+
   const VISTAS_MENU_PRINCIPAL = [
     { id: 'inicio', label: 'Inicio' },
-    { id: 'proyecto', label: 'Proyecto del orden del día', badge: 0, expandible: true },
+    { id: 'proyecto', label: 'Proyecto del orden del día', badge: puntos.length, expandible: true },
     { id: 'sesionPrevia', label: sesionFinalizada ? 'Sesión celebrada' : 'Celebrar sesión' },
     { id: 'actaSesion', label: 'Historial' },
   ];
@@ -93,6 +111,7 @@ export function ProyectoProvider({ children }) {
     FECHAS_SESIONES: fechasSesiones,
     sesionActivaFecha, cargarSesion,
     sesionFinalizada, finalizarSesion,
+    PUNTOS: puntos, agregarPunto,
     agregarSesiones,
   };
   return <ProyectoContext.Provider value={value}>{children}</ProyectoContext.Provider>;

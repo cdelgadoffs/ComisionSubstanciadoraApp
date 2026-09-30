@@ -5,6 +5,7 @@ import Sidebar3 from '../components/base/Sidebar3.jsx';
 import Sidebar5 from '../components/base/Sidebar5.jsx';
 import PanelPrincipal from '../components/base/PanelPrincipal.jsx';
 import MenuPrincipalSesion from '../components/widgets/MenuPrincipalSesion.jsx';
+import FormularioPunto from '../components/widgets/FormularioPunto.jsx';
 import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
 import { useUI, ANCHO_SIDEBAR3, ALTO_TOPBAR, ALTO_CINTA } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
@@ -44,7 +45,9 @@ export default function ProyectoOrdenDia() {
         arriba={arribaSidebar}
         badge={nuevoPunto.badge}
         onCerrar={() => setSidebar3Abierto(false)}
-      />
+      >
+        <FormularioPunto />
+      </Sidebar3>
       <Sidebar5
         abierto={sidebar5Abierto}
         ancho={sidebar5Ancho}

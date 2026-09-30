@@ -1,7 +1,7 @@
 .base-textarea {
   display: block;
   width: 100%;
-  min-height: 40px;
+  min-height: 90px;
   padding: 8px 10px;
   box-sizing: border-box;
   border: 1px solid #ccc;

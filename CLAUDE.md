@@ -110,6 +110,19 @@ Ya está completo y no requiere más trabajo salvo que se pida explícitamente:
 - `ProyectoContext` — `agregarSesiones(fechas)` agrega un lote de fechas de una vez y recalcula números/estados; persiste en `services/indexedDB.js` en cada cambio y carga al montar.
 - Todo esto vive **dentro de Sidebar5 únicamente** — no es una vista/page routeable de ancho completo.
 
+## Estado actual del flujo de FormularioPunto (referencia funcional)
+
+Versión mínima/media completa (sin adjuntos a backend real, sin OneDrive, sin generación de Word/acta — eso no aplica a este proyecto):
+
+- `widgets/FormularioPunto.jsx` — vive en `components/widgets/` (no en `pages/panelcontrol/`), porque `Sidebar3` no tiene un switcher tipo `MenuPanelControl` que lo requiera — se monta directo como `children`, igual que `MenuPrincipalSesion` en `Sidebar1`.
+- Se monta **solo en `pages/ProyectoOrdenDia.jsx`** (como `children` de `Sidebar3`), porque es la única page donde el trigger "+" es alcanzable (`MenuPrincipalSesion` solo expande el submenú cuando `vistaActual === 'proyecto'`). Las otras 3 pages siguen montando `Sidebar3` sin `children`, sin necesidad de duplicar el formulario ahí.
+- `UIContext` — nuevo estado `seccionNuevoPunto`/`setSeccionNuevoPunto`, que coordina qué sección quedó seleccionada al hacer clic en el "+" de `SubMenuDD` (en `MenuPrincipalSesion`) con el formulario que se abre en `Sidebar3` — mismo patrón de "dos widgets distintos coordinados vía `UIContext`" ya usado para `sidebar5Abierto`/`accionesHeader`.
+- `ProyectoContext` — nuevo estado `puntos`/`agregarPunto(datos)`, persistido en `services/indexedDB.js` (nuevo object store `puntos`, `DB_VERSION` subido a 2). `SECCIONES_DOCUMENTO` y el badge de `VISTAS_MENU_PRINCIPAL` (`proyecto`) ahora se recalculan dentro del Provider a partir de `puntos` — mismo patrón reactivo que `sesionFinalizada`.
+- `base/BotonS.jsx` ganó un prop `variant` (`'oscuro'` por defecto, `'claro'` nuevo) y `disabled` — opt-in, sin cambiar el aspecto de los consumidores existentes (`Topbar`, `CalendarizacionMensual`, `Quorum`, todos en fondos oscuros). `FormularioPunto` es el primer consumidor en fondo claro (`Sidebar3`).
+- Remitentes (`Pleno`, `Presidencia`, `Secretaría General`) están **hardcodeados directamente en el widget** — son un placeholder genérico, no el organigrama real de la organización; reemplazar cuando se tenga ese dato.
+- `base/BotonIcono.jsx` — nuevo átomo genérico (botón cuadrado con un ícono, prop `icono` = clase CSS del ícono). Usa **Remix Icon** vía CDN (`cdn.jsdelivr.net/npm/remixicon`), cargado una sola vez en `index.html` (no por componente, igual que una fuente global) — es el ícono estándar del proyecto para botones de acción; no mezclar con otras librerías de íconos.
+- `Sidebar3` **se queda abierto tras "Añadir"** — solo `Cancelar` y el ✕ lo cierran. El formulario se resetea a vacío (misma sección) después de agregar, y **cambia de sección automáticamente y sin cerrar** si se hace clic en el "+" de otra sección mientras ya está abierto (el `useEffect` de `FormularioPunto` escucha tanto `sidebar3Abierto` como `seccionNuevoPunto`). Cada cambio de sección fuerza un remount vía `key={form.seccion}` en el contenedor raíz del widget, lo que dispara una animación CSS de entrada (`@keyframes` en `FormularioPunto.css`) — precedente idéntico al `key={seccionActual}` + `.ter-form { animation }` de PlenoLOCAL.
+
 ## Pendientes conocidos (no iniciar sin que se pida)
 
 - Autenticación real con MSAL (`AuthContext`, `LoginGate`, `BloqueadoGate`) — pausado hasta tener `clientId`/`authority` de un App Registration propio para esta app.

@@ -9,7 +9,7 @@ export default function MenuPrincipalSesion() {
   const {
     vistaActual, setVistaActual,
     acordeonAbierto, setAcordeonAbierto,
-    setSidebar3Abierto,
+    setSidebar3Abierto, setSeccionNuevoPunto,
   } = useUI();
   const [seccionActiva, setSeccionActiva] = useState(null);
 
@@ -46,8 +46,8 @@ export default function MenuPrincipalSesion() {
               <SubMenuDD
                 items={SECCIONES_DOCUMENTO}
                 activoId={seccionActiva}
-                onSeleccionar={setSeccionActiva}
-                onAgregar={() => setSidebar3Abierto(true)}
+                onSeleccionar={(seccionId) => { setSeccionActiva(seccionId); setSeccionNuevoPunto(seccionId); setSidebar3Abierto(true); }}
+                onAgregar={(seccionId) => { setSeccionNuevoPunto(seccionId); setSidebar3Abierto(true); }}
                 iconoAgregar="+"
               />
             )}
