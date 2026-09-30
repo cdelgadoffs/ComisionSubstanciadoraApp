@@ -1,0 +1,99 @@
+.widget-lista-puntos-proyecto {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24px 32px;
+}
+.widget-lista-puntos-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.widget-lista-puntos-separador {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #999;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+.widget-lista-puntos-vacio {
+  color: #aaa;
+  font-size: 13px;
+  font-style: italic;
+  padding: 4px 0;
+}
+.widget-lista-puntos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #f5f6f8;
+  padding: 12px 18px;
+  border-bottom: 1px solid #c9c9ca;
+}
+.widget-lista-puntos-titulo {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a1a;
+  letter-spacing: 0.01em;
+}
+.widget-lista-puntos-titulo-confidencial {
+  color: #c62828;
+}
+.widget-lista-puntos-dependencia {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: #e8f0fe;
+  color: #1a56db;
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid #1a56db;
+}
+.widget-lista-puntos-fila {
+  padding: 11px 18px;
+  border-top: 1px solid #c9c9ca;
+}
+.widget-lista-puntos-label {
+  display: block;
+  font-weight: 600;
+  font-size: 11px;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+.widget-lista-puntos-contenido {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+  font-size: 15px;
+  color: #1a1a1a;
+}
+.widget-lista-puntos-acuerdo {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12.5px;
+  color: #666;
+}
+.widget-lista-puntos-archivos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 11px 18px;
+  border-top: 1px solid #c9c9ca;
+  background: #fafbfc;
+}
+.widget-lista-puntos-archivo {
+  background: #e8f0fe;
+  color: #1a56db;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+}

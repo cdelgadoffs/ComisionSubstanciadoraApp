@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import BotonSeleccionableMenu from '../base/BotonSeleccionableMenu.jsx';
 import SubMenuDD from './SubMenuDD.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
@@ -10,11 +9,11 @@ export default function MenuPrincipalSesion() {
     vistaActual, setVistaActual,
     acordeonAbierto, setAcordeonAbierto,
     sidebar3Abierto, setSidebar3Abierto, setSeccionNuevoPunto,
+    seccionActivaProyecto, setSeccionActivaProyecto,
   } = useUI();
-  const [seccionActiva, setSeccionActiva] = useState(null);
 
   function seleccionarSeccion(seccionId) {
-    setSeccionActiva(seccionId);
+    setSeccionActivaProyecto(seccionId);
     if (sidebar3Abierto) setSeccionNuevoPunto(seccionId);
   }
 
@@ -50,7 +49,7 @@ export default function MenuPrincipalSesion() {
             {expandido && (
               <SubMenuDD
                 items={SECCIONES_DOCUMENTO}
-                activoId={seccionActiva}
+                activoId={seccionActivaProyecto}
                 onSeleccionar={seleccionarSeccion}
                 onAgregar={(seccionId) => { setSeccionNuevoPunto(seccionId); setSidebar3Abierto(true); }}
                 iconoAgregar="+"

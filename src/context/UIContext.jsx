@@ -20,6 +20,8 @@ export function UIProvider({ children }) {
   const [vistaActual, setVistaActual] = useState('inicio');
   const [acordeonAbierto, setAcordeonAbierto] = useState(false);
   const [seccionNuevoPunto, setSeccionNuevoPunto] = useState(null);
+  const [seccionActivaProyecto, setSeccionActivaProyecto] = useState(null);
+  const [vistaCompletaProyecto, setVistaCompletaProyecto] = useState(false);
 
   const izquierdaSidebar1 = 0;
   const izquierdaSidebar2 = izquierdaSidebar1 + ANCHO_SIDEBAR1;
@@ -46,6 +48,8 @@ export function UIProvider({ children }) {
     vistaActual, setVistaActual,
     acordeonAbierto, setAcordeonAbierto,
     seccionNuevoPunto, setSeccionNuevoPunto,
+    seccionActivaProyecto, setSeccionActivaProyecto,
+    vistaCompletaProyecto, setVistaCompletaProyecto,
     izquierdaSidebar1, izquierdaSidebar2, izquierdaSidebar3,
   };
 
