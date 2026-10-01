@@ -1,17 +1,21 @@
 import Card from '../base/Card.jsx';
+import IndicadorSync from '../base/IndicadorSync.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
 import { useUI } from '../../context/UIContext.jsx';
 import '../../styles/widgets/ListaPuntosProyecto.css';
 
-function TarjetaPunto({ punto, titulo }) {
-  const esInforme = punto.seccion === 'informes';
+function TarjetaPunto({ punto, titulo, requiereAcuerdo, nombreRemitente }) {
+  const esInforme = !requiereAcuerdo;
   return (
     <Card>
       <div className="widget-lista-puntos-header">
         <span className={'widget-lista-puntos-titulo' + (punto.confidencial ? ' widget-lista-puntos-titulo-confidencial' : '')}>
           {titulo}
         </span>
-        <span className="widget-lista-puntos-dependencia">{punto.remitente}</span>
+        <div className="widget-lista-puntos-header-derecha">
+          <IndicadorSync estado={punto.sincronizacion} />
+          <span className="widget-lista-puntos-dependencia">{nombreRemitente}</span>
+        </div>
       </div>
       <div className="widget-lista-puntos-fila">
         <span className="widget-lista-puntos-label">{esInforme ? 'Informe' : 'Punto de acuerdo'}</span>
@@ -34,18 +38,24 @@ function TarjetaPunto({ punto, titulo }) {
   );
 }
 
-function listaDeSeccion(puntos, seccionId, nombreSeccion) {
-  const deLaSeccion = puntos.filter((p) => p.seccion === seccionId);
+function listaDeSeccion(puntos, seccion, remitentes) {
+  const deLaSeccion = puntos.filter((p) => p.seccion === seccion.id);
   if (deLaSeccion.length === 0) {
-    return <div className="widget-lista-puntos-vacio">Sin puntos en {nombreSeccion}.</div>;
+    return <div className="widget-lista-puntos-vacio">Sin puntos en {seccion.nombre}.</div>;
   }
   return deLaSeccion.map((p, i) => (
-    <TarjetaPunto key={p.id} punto={p} titulo={`${nombreSeccion} ${i + 1}`} />
+    <TarjetaPunto
+      key={p.id}
+      punto={p}
+      titulo={`${seccion.nombre} ${i + 1}`}
+      requiereAcuerdo={seccion.requiereAcuerdo}
+      nombreRemitente={remitentes.find((r) => r.id === p.remitente)?.nombre ?? p.remitente}
+    />
   ));
 }
 
 export default function ListaPuntosProyecto() {
-  const { PUNTOS: puntos, SECCIONES_DOCUMENTO } = useProyecto();
+  const { PUNTOS: puntos, SECCIONES_DOCUMENTO, REMITENTES } = useProyecto();
   const { seccionActivaProyecto, vistaCompletaProyecto } = useUI();
 
   if (vistaCompletaProyecto) {
@@ -54,7 +64,7 @@ export default function ListaPuntosProyecto() {
         {SECCIONES_DOCUMENTO.map((s) => (
           <div key={s.id} className="widget-lista-puntos-grupo">
             <div className="widget-lista-puntos-separador">{s.nombre}</div>
-            {listaDeSeccion(puntos, s.id, s.nombre)}
+            {listaDeSeccion(puntos, s, REMITENTES)}
           </div>
         ))}
       </div>
@@ -66,7 +76,7 @@ export default function ListaPuntosProyecto() {
 
   return (
     <div className="widget-lista-puntos-proyecto">
-      {seccion ? listaDeSeccion(puntos, seccion.id, seccion.nombre) : (
+      {seccion ? listaDeSeccion(puntos, seccion, REMITENTES) : (
         <div className="widget-lista-puntos-vacio">Sin secciones definidas.</div>
       )}
     </div>

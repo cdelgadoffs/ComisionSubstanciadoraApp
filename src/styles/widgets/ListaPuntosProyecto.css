@@ -44,6 +44,12 @@
 .widget-lista-puntos-titulo-confidencial {
   color: #c62828;
 }
+.widget-lista-puntos-header-derecha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
 .widget-lista-puntos-dependencia {
   flex-shrink: 0;
   font-size: 12px;

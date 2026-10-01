@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ListaExpandible from '../base/ListaExpandible.jsx';
 import Textarea from '../base/Textarea.jsx';
 import Checkbox from '../base/Checkbox.jsx';
@@ -9,12 +9,10 @@ import { useUI } from '../../context/UIContext.jsx';
 import { useScrollbarPersonalizada } from '../../hooks/useScrollbarPersonalizada.js';
 import '../../styles/widgets/FormularioPunto.css';
 
-const REMITENTES = ['Pleno', 'Presidencia', 'Secretaría General'];
-
 function estadoVacio(seccion) {
   return {
-    seccion: seccion || 'acuerdos',
-    remitente: REMITENTES[0],
+    seccion: seccion || '',
+    remitente: '',
     contenido: '',
     acuerdo: '',
     confidencial: false,
@@ -22,19 +20,63 @@ function estadoVacio(seccion) {
   };
 }
 
+function claveBorrador(seccion) {
+  return `formularioPunto:${seccion}`;
+}
+
+function tieneContenido(f) {
+  return f.contenido.trim().length > 0 || f.acuerdo.trim().length > 0 || f.archivos.length > 0 || f.confidencial;
+}
+
 export default function FormularioPunto() {
-  const { SECCIONES_DOCUMENTO, agregarPunto } = useProyecto();
+  const { SECCIONES_DOCUMENTO, REMITENTES, agregarPunto, guardarBorrador, obtenerBorrador, eliminarBorrador } = useProyecto();
   const { sidebar3Abierto, setSidebar3Abierto, seccionNuevoPunto } = useUI();
   const [form, setForm] = useState(() => estadoVacio(seccionNuevoPunto));
+  const [restaurado, setRestaurado] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState(null);
+  const claveGuardadaRef = useRef(null);
   const { contenedorRef, thumb, onScroll, onArrastrarThumb } = useScrollbarPersonalizada();
 
   useEffect(() => {
-    if (sidebar3Abierto) setForm(estadoVacio(seccionNuevoPunto));
+    if (!sidebar3Abierto) return;
+    let vigente = true;
+    const seccion = seccionNuevoPunto || SECCIONES_DOCUMENTO[0]?.id || '';
+    setRestaurado(false);
+    setError(null);
+    setForm(estadoVacio(seccion));
+    obtenerBorrador(claveBorrador(seccion))
+      .catch(() => null)
+      .then((borrador) => {
+        if (!vigente) return;
+        claveGuardadaRef.current = borrador ? claveBorrador(seccion) : null;
+        if (borrador) setForm({ ...estadoVacio(seccion), ...borrador, seccion });
+        setRestaurado(true);
+      });
+    return () => { vigente = false; };
   }, [sidebar3Abierto, seccionNuevoPunto]);
+
+  useEffect(() => {
+    if (!restaurado) return;
+    const clave = claveBorrador(form.seccion);
+    const temporizador = setTimeout(() => {
+      const anterior = claveGuardadaRef.current;
+      if (anterior && anterior !== clave) eliminarBorrador(anterior);
+      if (tieneContenido(form)) {
+        guardarBorrador(clave, form);
+        claveGuardadaRef.current = clave;
+      } else {
+        eliminarBorrador(clave);
+        claveGuardadaRef.current = null;
+      }
+    }, 300);
+    return () => clearTimeout(temporizador);
+  }, [form, restaurado]);
 
   const opcionesSeccion = SECCIONES_DOCUMENTO.map((s) => ({ id: s.id, label: s.nombre }));
   const seccionActual = SECCIONES_DOCUMENTO.find((s) => s.id === form.seccion);
-  const esInforme = form.seccion === 'informes';
+  const esInforme = seccionActual ? !seccionActual.requiereAcuerdo : false;
+  const remitenteActual = REMITENTES.some((r) => r.id === form.remitente) ? form.remitente : (REMITENTES[0]?.id || '');
 
   function actualizar(campo, valor) {
     setForm((f) => ({ ...f, [campo]: valor }));
@@ -54,19 +96,27 @@ export default function FormularioPunto() {
     setForm(estadoVacio(form.seccion));
   }
 
-  function confirmar() {
-    agregarPunto({
-      seccion: form.seccion,
-      remitente: form.remitente,
-      contenido: form.contenido.trim(),
-      acuerdo: esInforme ? '' : form.acuerdo.trim(),
-      confidencial: form.confidencial,
-      archivos: form.archivos,
-    });
-    setForm(estadoVacio(form.seccion));
+  async function confirmar() {
+    setEnviando(true);
+    setError(null);
+    try {
+      await agregarPunto({
+        seccion: form.seccion,
+        remitente: remitenteActual,
+        contenido: form.contenido.trim(),
+        acuerdo: esInforme ? '' : form.acuerdo.trim(),
+        confidencial: form.confidencial,
+        archivos: form.archivos,
+      });
+      setForm(estadoVacio(form.seccion));
+    } catch (e) {
+      setError(e.mensaje || 'No se pudo añadir el punto.');
+    } finally {
+      setEnviando(false);
+    }
   }
 
-  const puedeConfirmar = form.contenido.trim().length > 0 && (esInforme || form.acuerdo.trim().length > 0);
+  const puedeConfirmar = !enviando && !!seccionActual && !!remitenteActual && form.contenido.trim().length > 0 && (esInforme || form.acuerdo.trim().length > 0);
 
   return (
     <div className="widget-formulario-punto-wrap">
@@ -84,9 +134,9 @@ export default function FormularioPunto() {
         <div className="widget-formulario-punto-campo">
           <label className="widget-formulario-punto-label">Remitente</label>
           <ListaExpandible
-            valorActual={form.remitente}
-            etiquetaActual={form.remitente}
-            opciones={REMITENTES.map((r) => ({ id: r, label: r }))}
+            valorActual={remitenteActual}
+            etiquetaActual={REMITENTES.find((r) => r.id === remitenteActual)?.nombre ?? ''}
+            opciones={REMITENTES.map((r) => ({ id: r.id, label: r.nombre }))}
             onSeleccionar={(id) => actualizar('remitente', id)}
           />
         </div>
@@ -125,6 +175,8 @@ export default function FormularioPunto() {
         onChange={(v) => actualizar('confidencial', v)}
         label="Marcar como confidencial"
       />
+
+      {error && <div className="widget-formulario-punto-error">{error}</div>}
 
       <div className="widget-formulario-punto-acciones">
         <BotonIcono icono="ri-eraser-line" ariaLabel="Borrar formulario" onClick={borrar} />

@@ -33,6 +33,8 @@ export default function CalendarizacionMensual() {
   const { FECHAS_SESIONES, sesionActivaFecha, cargarSesion, agregarSesiones } = useProyecto();
   const [mes, setMes] = useState(mesActualISO);
   const [fechasSeleccionadas, setFechasSeleccionadas] = useState([]);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     setSidebar5Ancho(true);
@@ -58,11 +60,19 @@ export default function CalendarizacionMensual() {
     );
   }
 
-  function agregar() {
-    if (fechasSeleccionadas.length === 0) return;
-    agregarSesiones(fechasSeleccionadas);
-    setFechasSeleccionadas([]);
-    setMostrarFormularioCalendario(false);
+  async function agregar() {
+    if (fechasSeleccionadas.length === 0 || enviando) return;
+    setEnviando(true);
+    setError(null);
+    try {
+      await agregarSesiones(fechasSeleccionadas);
+      setFechasSeleccionadas([]);
+      setMostrarFormularioCalendario(false);
+    } catch (e) {
+      setError(e.mensaje || 'No se pudieron agregar las sesiones.');
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -80,7 +90,8 @@ export default function CalendarizacionMensual() {
             onSeleccionarFecha={alternarFecha}
             diasOcupados={FECHAS_SESIONES.map((f) => f.id)}
           />
-          <BotonS onClick={agregar}>Agregar{fechasSeleccionadas.length > 0 ? ` (${fechasSeleccionadas.length})` : ''}</BotonS>
+          {error && <p style={{ color: '#e57373', fontSize: '12.5px', margin: 0 }}>{error}</p>}
+          <BotonS onClick={agregar} disabled={enviando}>Agregar{fechasSeleccionadas.length > 0 ? ` (${fechasSeleccionadas.length})` : ''}</BotonS>
         </>
       ) : (
         <>

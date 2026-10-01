@@ -20,7 +20,7 @@ Al traer algo de PlenoLOCAL, nunca se copia tal cual su estructura de archivos n
 | `components/base/` | Átomos y moldes de layout puros. Ver regla mecánica abajo. |
 | `components/widgets/` | Todo lo que compone piezas de `base` y/o toca contexto directamente. |
 | `context/` | Almacén central de datos y acciones de negocio. |
-| `services/` | I/O externo real (IndexedDB, futuro backend). Solo los llama `context/`. |
+| `services/` | I/O externo: el API (intercambiable `LocalAPI`/`ServerConnection`) y el almacenamiento del cliente (`SesionIndexedDB`). Solo los llama `context/`. Ver "Arquitectura de datos". |
 | `pages/` | Ensambla una vista completa: monta sus propias instancias de `base`/`widgets` + contenido estático trivial. |
 | `App.jsx` | Decide qué page se sirve (routing vía `vistaActual`) y monta solo piezas verdaderamente globales que no pertenecen a ninguna page (hoy: `Sidebar4`). |
 
@@ -67,13 +67,55 @@ Estos archivos "de excepción" **solo son visibles/montables dentro de `Sidebar5
 - **"Sal al gusto":** cuando una page necesita un ajuste de estilo puramente presentacional y de un solo uso sobre un componente reutilizable (ej. un margen para separarlo del borde), se aplica como `style` inline en un wrapper dentro de la page — **nunca** se modifica el CSS del componente compartido (eso filtraría el ajuste a todos los demás consumidores), y tampoco se crea un archivo CSS nuevo solo para una declaración estática (sobre-ingeniería).
 
 ### `context/` — la despensa
-- Solo aquí vive estado de negocio real y acciones que lo modifican.
-- Los context exponen datos (`FECHAS_SESIONES`, `sesionActivaFecha`, etc.) y acciones (`agregarSesiones`, `cargarSesion`, etc.) — nunca lógica de presentación.
-- Las acciones que necesitan persistencia llaman a `services/` (ej. `guardarSesiones` de `services/indexedDB.js`) dentro de la misma función de acción del context — el componente que dispara la acción no sabe que existe persistencia.
+- Solo aquí vive el estado de negocio **en el cliente** (un espejo de lo que dice el API) y las acciones que lo mueven. Las **reglas** de negocio no viven aquí: viven del otro lado del puente (ver "Arquitectura de datos").
+- Los context exponen datos (`FECHAS_SESIONES`, `sesionActivaFecha`, `SECCIONES_DOCUMENTO`, etc.) y acciones (`agregarSesiones`, `cargarSesion`, etc.) — nunca lógica de presentación: ni tablas de menú, ni textos de interfaz, ni conteos para mostrar (el badge por sección se cuenta en el widget que lo pinta, a partir de `PUNTOS`).
+- Los context **de negocio** son los puentes hacia `services/`; `UIContext` **no** lo es (solo estado de interfaz, jamás llama a `services/`).
+- Las acciones son asíncronas: llaman a `services/api.js`, esperan la respuesta y actualizan el estado con **lo que el API devolvió**, nunca con lo que el cliente supone. Las acciones que pueden fallar lanzan el error hacia el componente que las disparó (el widget decide cómo mostrarlo); el context expone además `cargando` y `error` para la carga inicial.
+- Nunca se llama a `services/` desde dentro de un updater de `setState` (efecto secundario dentro de una función pura — se ejecuta doble en StrictMode).
 
 ### `services/` — los proveedores
-- I/O externo puro (hoy: IndexedDB nativo, sin librerías). Funciones async simples, sin JSX, sin conocimiento de React.
+- I/O externo puro. Funciones async simples, sin JSX, sin conocimiento de React.
 - Solo los llama `context/`, nunca componentes directamente.
+- Estructura, nombres y responsabilidades en la sección "Arquitectura de datos" (abajo).
+
+## Arquitectura de datos: cliente / API intercambiable
+
+Estándar para todo proyecto de este tipo. Se desarrolla como **prototipo 100% front**, con un API simulado que se comporta como un servidor real, para que el usuario pruebe y se hagan ajustes antes de conectar. Al conectar, **no cambia nada fuera de `services/` y de la configuración**.
+
+```
+context/ (puente)  ──▶  services/api.js  ──▶  LocalAPI/          (prototipo: servidor simulado + su propia IndexedDB "LocalAPI")
+                    │                    └──▶  ServerConnection/  (producción: fetch al backend real)
+                    └─▶  services/SesionIndexedDB.js              (cliente, permanente en ambos modos)
+```
+
+### Quién controla qué
+- **API (fuente de verdad)** — todo lo que debe ser seguro, íntegro u oficial: identidad y roles, permisos, **confidencialidad** (el servidor no envía lo que el usuario no puede ver), validación de datos, estados derivados del reloj del servidor (`proxima`, `no-celebrada`), consecutivos oficiales (`numeroSesion`), unicidad (una sesión por fecha), transiciones de estado (celebrar es una operación atómica), inmutabilidad tras celebrar, IDs/timestamps/autoría, control de versiones (`version`), archivos, auditoría.
+- **Catálogos de dominio** (secciones, remitentes, etc.) — son **datos del API, no código**: el API ofrece un mecanismo genérico (`listarCatalogos()`) y cada proyecto carga sus propias filas (semilla), con atributos que llevan las reglas (ej. `requiereAcuerdo`). Así el API valida y aplica reglas sin conocer el proyecto, y es reutilizable. El cliente los lee vía context y los usa para pintar y para su validación de UX; **nunca** los hardcodea ni los duplica.
+- **Cliente** — la **estructura de la interfaz** (tablas de menú, textos, íconos) vive en el **widget** que la pinta (precedente: `ITEMS_PANEL_CONTROL` en `MenuPanelControl`, `VISTAS_MENU_PRINCIPAL` en `MenuPrincipalSesion`), nunca en el context ni en el API. Además: todo `UIContext`, borradores de formularios, validación de UX (deshabilitar "Añadir", mensajes inline — **duplica** la del servidor, nunca la reemplaza), presentación derivada (formato de etiquetas, agrupar por sección, contar badges, filtrar por mes), qué sesión está activa en pantalla, navegación.
+- **Regla de decisión:** si una regla "valida" o "calcula" algo oficial, va en el API. Si aparece en un context o un componente, es una señal de que está del lado equivocado del puente. Los datos **derivados** (estados, consecutivos) nunca se persisten: se calculan al leer.
+
+### Estructura de `services/`
+| Archivo / carpeta | Rol | ¿Sobrevive a la conexión real? |
+|---|---|---|
+| `api.js` | Único punto de entrada para `context/`. Elige la implementación según `VITE_API_MODE` y re-exporta las mismas operaciones. | Sí |
+| `ApiError.js` | Forma única de error (`{ codigo, mensaje }`) que ambas implementaciones lanzan. | Sí |
+| `LocalAPI/` | Servidor simulado: `index.js` (operaciones), `reglas.js` (validaciones, estados, permisos, usuario simulado), `semilla.js` (filas iniciales de los catálogos del proyecto), `db.js` (su propia IndexedDB, nombre `LocalAPI`). | **No** — se borra la carpeta completa al conectar |
+| `ServerConnection/` | Cliente del backend real. Mismas firmas que `LocalAPI`. | Sí (es el real) |
+| `SesionIndexedDB.js` | IndexedDB **del cliente** (nombre `SesionIndexedDB`): `borradores` (formularios sin confirmar), `cache` (última copia conocida para abrir rápido) y a futuro `cola` (escritura offline). **Nunca es fuente de verdad**: si discrepa del servidor, gana el servidor. | Sí, siempre |
+
+- **Dos bases distintas, dos roles**: `SesionIndexedDB` es del producto final; `LocalAPI` es el servidor de mentira. No se mezclan nunca.
+- **Interruptor**: `.env.development` → `VITE_API_MODE=local`; `.env.production` → `VITE_API_MODE=real` (+ `VITE_API_URL`). Se decide **al compilar** (Vite reemplaza la variable y el build de producción no incluye `LocalAPI`). Todo lo `VITE_*` queda visible en el bundle: nunca poner secretos ahí.
+- **Contrato**: `docs/CONTRATO_API.md` — firmas, modelo de datos, errores y reglas. Es lo que se congela y lo que el backend implementa; `LocalAPI` y `ServerConnection` son gemelos que lo cumplen. Cualquier cambio de contrato se hace primero en ese documento.
+- **`LocalAPI` debe comportarse como un servidor**, no como un almacén: las reglas viven en `LocalAPI/reglas.js`, nunca en el context ni en componentes; operaciones atómicas (nunca "guardar todo"); todo async y puede fallar con `ApiError`.
+- **Límites del modo local**: la seguridad real y el multiusuario no se pueden probar ahí (todo está en el navegador). Sirve para validar flujo y contrato.
+
+### Estado de sincronización (`IndicadorSync`)
+- Cada dato que el context entrega lleva `sincronizacion`: `'servidor'` | `'local'` | `'error'`. **Lo pone el cliente** (el context/la cola), no el API. Hoy todo es `'servidor'`; `'local'` aparecerá con la cola offline.
+- `base/IndicadorSync.jsx` es el átomo que lo pinta (ícono + tooltip intrínsecos); los widgets lo montan.
+
+### Borradores
+- Un widget con formulario guarda su borrador **vía el context** (`guardarBorrador`/`obtenerBorrador`/`eliminarBorrador`), nunca llamando a `SesionIndexedDB` directo (es un widget; solo `context/` toca `services/`).
+- Clave por contexto de uso (ej. `formularioPunto:<seccion>`); se guarda con debounce, se restaura al abrir y se elimina cuando el formulario queda vacío (tras añadir o borrar). Hasta que termina la restauración no se guarda nada, para no pisar el borrador existente.
 
 ### `utils/` — datos y funciones de referencia puros
 - Constantes/funciones **estáticas y reutilizables sin estado**, sin JSX, sin conocimiento de React ni de contexto (ej. `MESES`, formateo de fechas). No es "estado de negocio" (eso es `context/`) ni I/O externo (eso es `services/`) — es la tercera categoría: datos de referencia que cualquier capa puede necesitar.
@@ -117,7 +159,7 @@ Ya está completo y no requiere más trabajo salvo que se pida explícitamente:
 - `base/BotonSeleccionablePanel.jsx`, `base/BotonAgregar.jsx` (con modo `etiqueta` expandible), `base/BotonS.jsx` — reutilizados en el flujo.
 - `widgets/MenuPanelControl.jsx` — switcher genérico de Sidebar5, con tabla `ITEMS_PANEL_CONTROL`.
 - `pages/panelcontrol/CalendarizacionMensual.jsx` — el widget real: por defecto muestra la lista de sesiones agendadas del mes si ya hay alguna, o el calendario si no hay ninguna; el botón "+" del header fuerza el calendario manualmente en cualquier momento.
-- `ProyectoContext` — `agregarSesiones(fechas)` agrega un lote de fechas de una vez y recalcula números/estados; persiste en `services/indexedDB.js` en cada cambio y carga al montar.
+- `ProyectoContext` — `agregarSesiones(fechas)` (asíncrona) manda el lote de fechas al API (`crearSesiones`) y reemplaza la lista con lo que éste devuelve (números/estados ya calculados por el servidor); carga al montar desde `SesionIndexedDB` (caché) y luego desde el API.
 - Todo esto vive **dentro de Sidebar5 únicamente** — no es una vista/page routeable de ancho completo.
 
 ## Estado actual del flujo de FormularioPunto (referencia funcional)
@@ -128,7 +170,7 @@ Versión mínima/media completa (sin adjuntos a backend real, sin OneDrive, sin 
 - Se monta **solo en `pages/ProyectoOrdenDia.jsx`** (como `children` de `Sidebar3`), porque es la única page donde el trigger "+" es alcanzable (`MenuPrincipalSesion` solo expande el submenú cuando `vistaActual === 'proyecto'`). Las otras 3 pages (`Inicio`, `SesionPrevia`, `Historial`) **ya no montan `Sidebar3` en absoluto** — antes lo montaban vacío (sin `children`) leyendo el mismo `sidebar3Abierto` de `UIContext`, lo que provocaba que si lo abrías desde `ProyectoOrdenDia` y cambiabas de vista, el sidebar aparecía abierto y vacío en la page nueva. Al no montarlo ahí, simplemente desaparece al cambiar de vista — es el comportamiento correcto de "cada mesa su propio mantel" (si una page no monta un `base`, solo se ve el fondo), no algo que haya que parchear reseteando `sidebar3Abierto` al navegar.
 - `UIContext` — nuevo estado `seccionNuevoPunto`/`setSeccionNuevoPunto`, que coordina qué sección quedó seleccionada al hacer clic en el "+" de `SubMenuDD` (en `MenuPrincipalSesion`) con el formulario que se abre en `Sidebar3` — mismo patrón de "dos widgets distintos coordinados vía `UIContext`" ya usado para `sidebar5Abierto`/`accionesHeader`. **Solo el botón "+" (`onAgregar`) puede abrir `Sidebar3`** (`setSidebar3Abierto(true)`) — hacer clic en la fila del ítem (`onSeleccionar`, fuera del botón) nunca lo abre. Se intentó en algún momento que la fila también abriera el sidebar, pero se revirtió explícitamente: esa relación es exclusiva del botón "+".
 - Con `Sidebar3` **ya abierto**, la fila sí puede refrescar la sección visible (`seleccionarSeccion` en `MenuPrincipalSesion` llama `setSeccionNuevoPunto(seccionId)` **solo si `sidebar3Abierto` es `true`**) — si está cerrado, la fila únicamente actualiza el resaltado local (`seccionActiva`), sin tocar `seccionNuevoPunto` ni el sidebar. `base/BotonAgregar.jsx` ya hace `stopPropagation()` en su `onClick`, así que el clic en "+" nunca dispara también el `onSeleccionar` de la fila que lo contiene.
-- `ProyectoContext` — nuevo estado `puntos`/`agregarPunto(datos)`, persistido en `services/indexedDB.js` (nuevo object store `puntos`, `DB_VERSION` subido a 2). `SECCIONES_DOCUMENTO` y el badge de `VISTAS_MENU_PRINCIPAL` (`proyecto`) ahora se recalculan dentro del Provider a partir de `puntos` — mismo patrón reactivo que `sesionFinalizada`.
+- `ProyectoContext` — estado `puntos`/`agregarPunto(datos)` (asíncrona, llama a `crearPunto(sesionActivaFecha, datos)` del API). Los puntos **pertenecen a una sesión** (`sesionId`): `PUNTOS` es siempre la lista de la `sesionActivaFecha`, y sin sesión activa el API rechaza crear (el formulario muestra el error). `SECCIONES_DOCUMENTO` y el badge de `VISTAS_MENU_PRINCIPAL` (`proyecto`) ahora se recalculan dentro del Provider a partir de `puntos` — mismo patrón reactivo que `sesionFinalizada`.
 - `base/BotonS.jsx` ganó un prop `variant` (`'oscuro'` por defecto, `'claro'` nuevo) y `disabled` — opt-in, sin cambiar el aspecto de los consumidores existentes (`Topbar`, `CalendarizacionMensual`, `Quorum`, todos en fondos oscuros). `FormularioPunto` es el primer consumidor en fondo claro (`Sidebar3`).
 - Remitentes (`Pleno`, `Presidencia`, `Secretaría General`) están **hardcodeados directamente en el widget** — son un placeholder genérico, no el organigrama real de la organización; reemplazar cuando se tenga ese dato.
 - `base/BotonIcono.jsx` — nuevo átomo genérico (botón cuadrado con un ícono, prop `icono` = clase CSS del ícono). Usa **Remix Icon** vía CDN (`cdn.jsdelivr.net/npm/remixicon`), cargado una sola vez en `index.html` (no por componente, igual que una fuente global) — es el ícono estándar del proyecto para botones de acción; no mezclar con otras librerías de íconos.
@@ -136,13 +178,13 @@ Versión mínima/media completa (sin adjuntos a backend real, sin OneDrive, sin 
 
 ## Estado actual de los badges de sesión (referencia funcional)
 
-- Cada sesión en `fechasSesiones` (context) tiene un campo propio `celebrada: boolean`, persistido en `services/indexedDB.js` junto al resto del registro.
-- `recalcularSesiones` (en `ProyectoContext.jsx`) deriva 4 estados visuales a partir de eso: `celebrada` (verde) si `celebrada === true`; `proxima` (azul) si es la fecha futura/hoy más cercana entre las no celebradas; `no-celebrada` (rojo) si ya pasó sin celebrarse; `pendiente` (gris) para el resto de futuras. Los 4 colores y el hover/`activa` más grande ya existían en `base/FechasSesiones.css` desde antes — este trabajo fue solo de `context/`, no tocó `base/` ni su CSS.
-- `agregarSesiones(fechas)` fusiona fechas nuevas con las existentes preservando su `celebrada` (nunca lo resetea al agregar más fechas al mismo mes).
-- `finalizarSesion()` marca `celebrada = true` en la sesión que sea `sesionActivaFecha` en ese momento (no un booleano genérico) y recalcula estados. `sesionFinalizada` (usado por el label del menú "Celebrar sesión"/"Sesión celebrada") se deriva de `sesionSeleccionada?.celebrada`, ya no es un `useState` aparte.
+- Cada sesión en `fechasSesiones` (context) tiene un campo propio `celebrada: boolean`, persistido por el API (`LocalAPI`) junto al resto del registro — es lo único que se guarda; el `estado` nunca se persiste.
+- `calcularEstados` (en `services/LocalAPI/reglas.js`, es decir, **del lado del API**, no del context) deriva 4 estados visuales a partir de eso, cada vez que se lista, con el reloj del servidor: `celebrada` (verde) si `celebrada === true`; `proxima` (azul) si es la fecha futura/hoy más cercana entre las no celebradas; `no-celebrada` (rojo) si ya pasó sin celebrarse; `pendiente` (gris) para el resto de futuras. Los 4 colores y el hover/`activa` más grande ya existían en `base/FechasSesiones.css` desde antes — este trabajo no tocó `base/` ni su CSS. El `label` ("4 de Octubre") es presentación: lo agrega el context con `utils/fechas.js` (`etiquetaFecha`), no viene del API.
+- `crearSesiones(fechas)` (API) es idempotente: fusiona fechas nuevas con las existentes preservando su `celebrada` (nunca lo resetea al agregar más fechas al mismo mes).
+- `finalizarSesion()` (context, asíncrona) llama a `celebrarSesion(sesionActivaFecha)` del API — operación atómica que rechaza si ya estaba celebrada — y vuelve a listar para traer los estados recalculados. Una sesión celebrada **no admite** crear/editar/eliminar puntos (error `SESION_CELEBRADA`). `sesionFinalizada` (usado por el label del menú "Celebrar sesión"/"Sesión celebrada") se deriva de `sesionSeleccionada?.celebrada`, ya no es un `useState` aparte.
 - La selección automática de "la más próxima por defecto" y la restricción de "no mostrar una próxima falsa si el mes filtrado no la tiene" no requirieron código adicional: `proxima` es un cálculo global sobre todas las fechas, y el filtro de mes en `CintaSesiones` es solo visual — si la próxima real cae en otro mes, el mes filtrado simplemente no muestra ningún azul.
 - **Pendiente real:** `finalizarSesion()` existe en `context/` pero **ninguna page la llama todavía** — no hay un botón "Celebrar sesión" conectado. Eso es trabajo futuro, no iniciar sin que se pida.
-- `numeroSesion` (el consecutivo oficial) solo avanza en sesiones con estado `celebrada` o `proxima` — una sesión `no-celebrada` no consume número, conserva el mismo consecutivo que la última sesión válida antes de ella. Se calcula dentro del mismo `recalcularSesiones`.
+- `numeroSesion` (el consecutivo oficial) solo avanza en sesiones con estado `celebrada` o `proxima` — una sesión `no-celebrada` no consume número, conserva el mismo consecutivo que la última sesión válida antes de ella. Se calcula dentro del mismo `calcularEstados` (API).
 - `widgets/CintaSesiones.jsx` tiene dos `base/BotonIcono` (flechas `ri-arrow-left-s-line`/`ri-arrow-right-s-line`, iguales a los `◀`/`▶` de PlenoLOCAL) agrupados en `.widget-cinta-sesiones-nav` (su propio `gap` de 4px) antes del `ListaExpandible` de mes, para navegar mes a mes con aritmética de año/mes — navega libremente aunque el mes destino no tenga sesiones (mismo comportamiento que PlenoLOCAL). Es estado local del propio widget (`mesSeleccionadoManual`), sin tocar `context/` ni `base/BotonIcono.jsx`.
 - Un tercer `BotonIcono` (`ri-arrow-go-back-line`, "volver a la próxima sesión") vive en ese mismo grupo **solo cuando el mes filtrado no es el de la sesión global con estado `proxima`** (precedente: `mostrarBotonIrActual`/`irASesionActual` de PlenoLOCAL) — al hacer clic, filtra al mes de la próxima y además la carga como `sesionActivaFecha` vía `cargarSesion`. Se renderiza condicionalmente (`{mostrarVolverProxima && (...)}`), no permanece montado.
 - **Pendiente conocido, explícitamente revertido:** los badges de `FechasSesiones` se desplazan unos píxeles al cambiar de mes (el ancho de `ListaExpandible` varía con la longitud del nombre del mes — "Septiembre 2026" vs "Octubre 2026" — y arrastra todo lo que sigue). Se intentaron dos fixes (reservar el espacio del botón "volver" con `visibility: hidden`, y un `min-width` fijo en el toggle de mes); ambos se descartaron porque dejaban demasiado espacio en blanco visualmente. **No reintentar estos dos enfoques** sin proponer antes una alternativa distinta — no iniciar sin que se pida.
@@ -165,8 +207,21 @@ Versión mínima/media completa (sin adjuntos a backend real, sin OneDrive, sin 
 - El thumb en fondo claro usa `rgba(0,0,0,0.15)`; en `Sidebar5` (fondo oscuro) usa `rgba(255,255,255,0.2)` — mismo patrón, clase con nombre distinto (`base-sidebar5-scrollbar-thumb`) para no chocar con el resto.
 - `base/Scrollbar.jsx` (el wrapper genérico) sigue existiendo para contenido scrollable **nuevo** que una page/widget quiera montar desde cero — los 4 contenedores que ya scrolleaban antes de este trabajo no lo importan, duplican el patrón (misma lógica del hook, JSX propio) para no romper su clasificación de capa ni su layout ya afinado.
 
+## Estado actual de la capa de datos (referencia funcional)
+
+Implementa la sección "Arquitectura de datos" tal cual. Contrato completo en `docs/CONTRATO_API.md`.
+
+- Modo actual: `VITE_API_MODE=local` en desarrollo (`LocalAPI`); `ServerConnection` existe como esqueleto: todas sus operaciones rechazan con `NO_IMPLEMENTADO` hasta que haya backend.
+- Operaciones del contrato v1: `listarCatalogos`, `listarSesiones`, `crearSesiones`, `celebrarSesion`, `listarPuntos(sesionId)`, `crearPunto(sesionId, datos)`, `editarPunto(id, version, cambios)`, `eliminarPunto(id)`. **`editarPunto` y `eliminarPunto` existen en el API pero ninguna UI las usa todavía** (ni el context las expone) — trabajo futuro, no iniciar sin que se pida.
+- Usuario simulado fijo en `LocalAPI/reglas.js` con rol `capturista` (único con escritura; solo él ve puntos confidenciales). Un selector de rol para pruebas no existe aún.
+- `ProyectoContext` carga **caché primero, servidor después** (gana siempre el servidor) y escribe la caché tras cada respuesta del API. `FormularioPunto` guarda/restaura su borrador por sección con `SesionIndexedDB` (vía context).
+- `ListaPuntosProyecto` monta `base/IndicadorSync` en cada tarjeta (ícono nube = `servidor`).
+- Datos de prueba antiguos (bases `comisionSubstanciadora`, anteriores a esta arquitectura) **no se migraron**: quedaron huérfanos en el navegador.
+- **Catálogos:** `secciones` (con `requiereAcuerdo`) y `remitentes` los sirve `LocalAPI` desde su semilla (`semilla.js`, almacén `catalogos`, `DB_VERSION` 2). `ProyectoContext` los carga con caché y expone `SECCIONES_DOCUMENTO` y `REMITENTES`. El remitente de un punto se guarda como `id` (`pleno`…); si el id ya no existe en el catálogo, la tarjeta muestra el valor tal cual. `catalogs/` queda sin uso (reservada para catálogos estáticos puramente de interfaz, si alguna vez hicieran falta).
+- **Pendientes conocidos:** (1) administración de catálogos (hoy solo lectura, cargados por semilla); (2) estado de **publicación** de la sesión (los lectores ven los puntos al crearlos vs. al publicarlos) — decisión de producto aún abierta; (3) cola de escritura offline (almacén `cola` de `SesionIndexedDB`) y el estado `local` del `IndicadorSync`; (4) la caché del cliente guarda también puntos confidenciales — al implementar autenticación real, vaciarla al cerrar sesión.
+
 - Autenticación real con MSAL (`AuthContext`, `LoginGate`, `BloqueadoGate`) — pausado hasta tener `clientId`/`authority` de un App Registration propio para esta app.
 - Sistema de permisos/roles que alimentaría `BloqueadoGate` — de momento no existe; cualquier cuenta autenticada pasaría.
-- `catalogs/`, `hooks/` — carpetas existentes pero vacías. `utils/` ya tiene contenido (`meses.js`).
+- `catalogs/` — carpeta existente pero vacía (ver arriba). `utils/` tiene `meses.js` y `fechas.js`.
 - `Sidebar2` — construido pero "parqueado" (usado hoy solo en `Historial.jsx`).
 - `Sidebar4` — montado desde `App.jsx` pero sin ningún trigger de apertura conectado todavía (solo existe el cierre); no iniciar esa conexión sin que se pida.

@@ -1,37 +1,19 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { guardarSesiones, obtenerSesiones, guardarPuntos, obtenerPuntos } from '../services/indexedDB.js';
-import { MESES } from '../utils/meses.js';
+import { listarCatalogos, listarSesiones, crearSesiones, celebrarSesion, listarPuntos, crearPunto } from '../services/api.js';
+import {
+  guardarBorrador, obtenerBorrador, eliminarBorrador,
+  guardarCache, obtenerCache,
+} from '../services/SesionIndexedDB.js';
+import { etiquetaFecha } from '../utils/fechas.js';
 
 const ProyectoContext = createContext(null);
 
-function fechaISO(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const dia = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${dia}`;
-}
+const CACHE_CATALOGOS = 'catalogos';
+const CACHE_SESIONES = 'sesiones';
+const cachePuntos = (sesionId) => `puntos:${sesionId}`;
 
-function recalcularSesiones(sesiones) {
-  const hoyISO = fechaISO(new Date());
-  const ordenadas = [...sesiones].sort((a, b) => (a.id < b.id ? -1 : 1));
-  const proxima = ordenadas.find((s) => s.id >= hoyISO && !s.celebrada);
-  let consecutivo = 0;
-  return ordenadas.map((s) => {
-    const fecha = new Date(s.id + 'T00:00:00');
-    let estado = 'pendiente';
-    if (s.celebrada) estado = 'celebrada';
-    else if (proxima && s.id === proxima.id) estado = 'proxima';
-    else if (s.id < hoyISO) estado = 'no-celebrada';
-    if (estado !== 'no-celebrada') consecutivo += 1;
-    return {
-      id: s.id,
-      numeroSesion: consecutivo,
-      label: `${fecha.getDate()} de ${MESES[fecha.getMonth()]}`,
-      celebrada: !!s.celebrada,
-      estado,
-    };
-  });
-}
+const conEtiqueta = (sesiones) => sesiones.map((s) => ({ ...s, label: etiquetaFecha(s.id) }));
+const conSync = (punto) => ({ ...punto, sincronizacion: 'servidor' });
 
 const sesionEnCurso = {
   badge: 'Sesión en curso',
@@ -42,24 +24,51 @@ const nuevoPunto = {
   badge: 'Nuevo punto',
 };
 
-const SECCIONES_DOCUMENTO_BASE = [
-  { id: 'informes', nombre: 'Informes' },
-  { id: 'dictamenes', nombre: 'Dictámenes' },
-  { id: 'acuerdos', nombre: 'Acuerdos' },
-  { id: 'asuntos generales', nombre: 'Asuntos generales' },
-];
+const CATALOGOS_VACIOS = { secciones: [], remitentes: [] };
 
 export function ProyectoProvider({ children }) {
   const [fechasSesiones, setFechasSesiones] = useState([]);
   const [sesionActivaFecha, setSesionActivaFecha] = useState(null);
   const [puntos, setPuntos] = useState([]);
+  const [catalogos, setCatalogos] = useState(CATALOGOS_VACIOS);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    obtenerSesiones().then(setFechasSesiones);
+    let vigente = true;
+    let servidorListo = false;
+    obtenerCache(CACHE_CATALOGOS).then((c) => {
+      if (vigente && !servidorListo && c) setCatalogos(c);
+    });
+    listarCatalogos()
+      .then((c) => {
+        if (!vigente) return;
+        servidorListo = true;
+        const completos = { ...CATALOGOS_VACIOS, ...c };
+        setCatalogos(completos);
+        guardarCache(CACHE_CATALOGOS, completos);
+      })
+      .catch((e) => vigente && setError(e));
+    return () => { vigente = false; };
   }, []);
 
   useEffect(() => {
-    obtenerPuntos().then(setPuntos);
+    let vigente = true;
+    let servidorListo = false;
+    obtenerCache(CACHE_SESIONES).then((c) => {
+      if (vigente && !servidorListo && c) setFechasSesiones(c);
+    });
+    listarSesiones()
+      .then((sesiones) => {
+        if (!vigente) return;
+        servidorListo = true;
+        const lista = conEtiqueta(sesiones);
+        setFechasSesiones(lista);
+        guardarCache(CACHE_SESIONES, lista);
+      })
+      .catch((e) => vigente && setError(e))
+      .finally(() => vigente && setCargando(false));
+    return () => { vigente = false; };
   }, []);
 
   useEffect(() => {
@@ -68,37 +77,48 @@ export function ProyectoProvider({ children }) {
     if (proxima) setSesionActivaFecha(proxima.id);
   }, [fechasSesiones, sesionActivaFecha]);
 
-  function agregarSesiones(fechas) {
-    setFechasSesiones((prev) => {
-      const porId = new Map(prev.map((f) => [f.id, f]));
-      fechas.forEach((id) => {
-        if (!porId.has(id)) porId.set(id, { id, celebrada: false });
-      });
-      const nuevas = recalcularSesiones([...porId.values()]);
-      guardarSesiones(nuevas);
-      return nuevas;
+  useEffect(() => {
+    setPuntos([]);
+    if (!sesionActivaFecha) return;
+    let vigente = true;
+    let servidorListo = false;
+    const clave = cachePuntos(sesionActivaFecha);
+    obtenerCache(clave).then((c) => {
+      if (vigente && !servidorListo && c) setPuntos(c);
     });
+    listarPuntos(sesionActivaFecha)
+      .then((lista) => {
+        if (!vigente) return;
+        servidorListo = true;
+        const conEstado = lista.map(conSync);
+        setPuntos(conEstado);
+        guardarCache(clave, conEstado);
+      })
+      .catch((e) => vigente && setError(e));
+    return () => { vigente = false; };
+  }, [sesionActivaFecha]);
+
+  function aplicarSesiones(sesiones) {
+    const lista = conEtiqueta(sesiones);
+    setFechasSesiones(lista);
+    guardarCache(CACHE_SESIONES, lista);
+  }
+
+  async function agregarSesiones(fechas) {
+    aplicarSesiones(await crearSesiones(fechas));
   }
   function cargarSesion(fecha) {
     setSesionActivaFecha(fecha);
   }
-  function finalizarSesion() {
-    setFechasSesiones((prev) => {
-      const actualizadas = prev.map((f) =>
-        f.id === sesionActivaFecha ? { ...f, celebrada: true } : f
-      );
-      const nuevas = recalcularSesiones(actualizadas);
-      guardarSesiones(nuevas);
-      return nuevas;
-    });
+  async function finalizarSesion() {
+    await celebrarSesion(sesionActivaFecha);
+    aplicarSesiones(await listarSesiones());
   }
-  function agregarPunto(datos) {
-    const nuevo = { id: crypto.randomUUID(), ...datos };
-    setPuntos((prev) => {
-      const nuevos = [...prev, nuevo];
-      guardarPuntos(nuevos);
-      return nuevos;
-    });
+  async function agregarPunto(datos) {
+    const creado = conSync(await crearPunto(sesionActivaFecha, datos));
+    const nuevos = [...puntos, creado];
+    setPuntos(nuevos);
+    guardarCache(cachePuntos(sesionActivaFecha), nuevos);
   }
 
   const sesionSeleccionada = fechasSesiones.find((f) => f.id === sesionActivaFecha);
@@ -107,25 +127,16 @@ export function ProyectoProvider({ children }) {
     : { titulo: 'Sesión Ordinaria', subtitulo: 'Fecha por definir' };
   const sesionFinalizada = !!sesionSeleccionada?.celebrada;
 
-  const SECCIONES_DOCUMENTO = SECCIONES_DOCUMENTO_BASE.map((s) => ({
-    ...s,
-    badge: puntos.filter((p) => p.seccion === s.id).length,
-  }));
-
-  const VISTAS_MENU_PRINCIPAL = [
-    { id: 'inicio', label: 'Inicio' },
-    { id: 'proyecto', label: 'Proyecto del orden del día', badge: puntos.length, expandible: true },
-    { id: 'sesionPrevia', label: sesionFinalizada ? 'Sesión celebrada' : 'Celebrar sesión' },
-    { id: 'actaSesion', label: 'Historial' },
-  ];
-
   const value = {
-    sesionActual, sesionEnCurso, nuevoPunto, VISTAS_MENU_PRINCIPAL, SECCIONES_DOCUMENTO,
+    sesionActual, sesionEnCurso, nuevoPunto,
+    SECCIONES_DOCUMENTO: catalogos.secciones, REMITENTES: catalogos.remitentes,
     FECHAS_SESIONES: fechasSesiones,
     sesionActivaFecha, cargarSesion,
     sesionFinalizada, finalizarSesion,
     PUNTOS: puntos, agregarPunto,
     agregarSesiones,
+    guardarBorrador, obtenerBorrador, eliminarBorrador,
+    cargando, error,
   };
   return <ProyectoContext.Provider value={value}>{children}</ProyectoContext.Provider>;
 }
