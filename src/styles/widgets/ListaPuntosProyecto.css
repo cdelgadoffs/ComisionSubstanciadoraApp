@@ -26,6 +26,14 @@
   font-style: italic;
   padding: 4px 0;
 }
+.widget-lista-puntos-error {
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+  border-radius: 6px;
+  color: #c62828;
+  font-size: 13px;
+  padding: 10px 14px;
+}
 .widget-lista-puntos-header {
   display: flex;
   align-items: center;

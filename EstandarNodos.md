@@ -68,7 +68,7 @@ Dos objetivos guían todo lo demás:
 - Solo aquí vive el estado de negocio **en el cliente** (un espejo de lo que dice el API) y las acciones que lo mueven. **Las reglas de negocio no viven aquí.**
 - Expone datos y acciones — nunca lógica de presentación: ni tablas de menú, ni textos de interfaz, ni conteos para mostrar (se cuentan en el widget que los pinta).
 - Los contextos **de negocio** son los puentes hacia `services/`. `UIContext` **no** lo es: solo estado de interfaz (sidebars abiertos, vista activa, búsqueda…), jamás llama a `services/`.
-- Las acciones son **asíncronas**: llaman a `services/api.js`, esperan y actualizan el estado con **lo que el API devolvió**, nunca con lo que el cliente supone. Si pueden fallar, lanzan el error hacia el componente que las disparó (el widget decide cómo mostrarlo). El context expone además `cargando` y `error` para la carga inicial.
+- Las acciones son **asíncronas**: llaman a `services/api.js`, esperan y actualizan el estado con **lo que el API devolvió**, nunca con lo que el cliente supone. Si pueden fallar, lanzan el error hacia el componente que las disparó (el widget decide cómo mostrarlo). El context lleva el estado de carga y de error **por recurso** (catálogos, sesiones, etc.), para que un fallo de uno no se borre al cargar otro, y expone `cargando` (alguno en curso) y `error` (el primer fallo activo, con su `mensaje`).
 - Nunca se llama a `services/` desde dentro de un updater de `setState` (efecto secundario en una función pura; se ejecuta doble en StrictMode).
 
 ## 7. `services/`
@@ -143,7 +143,7 @@ Un widget con formulario guarda su borrador **vía el context** (`guardarBorrado
 - **CSS con altura fija cuando otros elementos dependen de ella:** si un componente se usa para calcular offsets de posición de otros, su altura es explícita (`height` + `box-sizing: border-box`), nunca dependiente del contenido.
 - **Sin sobre-ingeniería:** no crear abstracciones, wrappers, CSS o capas nuevas para necesidades hipotéticas o de un solo uso. Tres líneas parecidas son mejor que una abstracción prematura.
 - **Sin comentarios en el código**, salvo petición explícita para un caso puntual.
-- **Errores visibles:** una carga que falla no puede mostrarse como "no hay datos". Distinguir "cargando", "error" y "vacío".
+- **Errores visibles:** una carga que falla no puede mostrarse como "no hay datos". Todo widget que pinta datos cargados distingue **tres estados** — cargando, error y vacío — y solo muestra el texto de "vacío" cuando la carga terminó **sin error**. En error muestra un aviso con el mensaje del API; en carga, "Cargando…". Los datos que ya se tenían (caché) se siguen mostrando junto al aviso. Un `base` no conoce estos estados: el widget le pasa el texto por props (ej. `textoVacio`, `subtitulo`).
 
 ## 12. Flujos de trabajo
 

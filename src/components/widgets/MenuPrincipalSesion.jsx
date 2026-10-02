@@ -11,7 +11,7 @@ const VISTAS_MENU_PRINCIPAL = [
 ];
 
 export default function MenuPrincipalSesion() {
-  const { SECCIONES_DOCUMENTO, PUNTOS, sesionFinalizada } = useProyecto();
+  const { SECCIONES_DOCUMENTO, PUNTOS, sesionFinalizada, cargando, error } = useProyecto();
   const {
     vistaActual, setVistaActual,
     acordeonAbierto, setAcordeonAbierto,
@@ -23,6 +23,10 @@ export default function MenuPrincipalSesion() {
     ...s,
     badge: PUNTOS.filter((p) => p.seccion === s.id).length,
   }));
+
+  const avisoSecciones = seccionesConBadge.length > 0
+    ? undefined
+    : error ? 'No se pudieron cargar las secciones.' : cargando ? 'Cargando…' : undefined;
 
   function seleccionarSeccion(seccionId) {
     setSeccionActivaProyecto(seccionId);
@@ -62,6 +66,7 @@ export default function MenuPrincipalSesion() {
             {expandido && (
               <SubMenuDD
                 items={seccionesConBadge}
+                subtitulo={avisoSecciones}
                 activoId={seccionActivaProyecto}
                 onSeleccionar={seleccionarSeccion}
                 onAgregar={(seccionId) => { setSeccionActivaProyecto(seccionId); setSeccionNuevoPunto(seccionId); setSidebar3Abierto(true); }}

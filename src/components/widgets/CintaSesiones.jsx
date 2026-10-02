@@ -12,7 +12,7 @@ function etiquetaMes(iso) {
 }
 
 export default function CintaSesiones({ textoVacio }) {
-  const { FECHAS_SESIONES: fechas, sesionActivaFecha, cargarSesion } = useProyecto();
+  const { FECHAS_SESIONES: fechas, sesionActivaFecha, cargarSesion, cargando, error } = useProyecto();
   const [mesSeleccionadoManual, setMesSeleccionadoManual] = useState(null);
 
   const mesesDisponibles = Array.from(new Set(fechas.map((f) => f.id.substring(0, 7)))).sort();
@@ -27,6 +27,10 @@ export default function CintaSesiones({ textoVacio }) {
 
   const proximaGlobal = fechas.find((f) => f.estado === 'proxima');
   const mostrarVolverProxima = proximaGlobal && proximaGlobal.id.substring(0, 7) !== mesFiltro;
+
+  const textoSinSesiones = error
+    ? `No se pudo cargar la información: ${error.mensaje}`
+    : cargando ? 'Cargando…' : textoVacio;
 
   function volverAProxima() {
     setMesSeleccionadoManual(proximaGlobal.id.substring(0, 7));
@@ -57,7 +61,7 @@ export default function CintaSesiones({ textoVacio }) {
         opciones={opcionesMes}
         onSeleccionar={setMesSeleccionadoManual}
       />
-      <FechasSesiones fechas={fechasFiltradas} activaId={sesionActivaFecha} onSeleccionar={cargarSesion} textoVacio={textoVacio} />
+      <FechasSesiones fechas={fechasFiltradas} activaId={sesionActivaFecha} onSeleccionar={cargarSesion} textoVacio={textoSinSesiones} />
     </div>
   );
 }

@@ -38,9 +38,11 @@ function TarjetaPunto({ punto, titulo, requiereAcuerdo, nombreRemitente }) {
   );
 }
 
-function listaDeSeccion(puntos, seccion, remitentes) {
+function listaDeSeccion(puntos, seccion, remitentes, estadoCarga) {
   const deLaSeccion = puntos.filter((p) => p.seccion === seccion.id);
   if (deLaSeccion.length === 0) {
+    if (estadoCarga === 'error') return null;
+    if (estadoCarga === 'cargando') return <div className="widget-lista-puntos-vacio">Cargando…</div>;
     return <div className="widget-lista-puntos-vacio">Sin puntos en {seccion.nombre}.</div>;
   }
   return deLaSeccion.map((p, i) => (
@@ -55,16 +57,21 @@ function listaDeSeccion(puntos, seccion, remitentes) {
 }
 
 export default function ListaPuntosProyecto() {
-  const { PUNTOS: puntos, SECCIONES_DOCUMENTO, REMITENTES } = useProyecto();
+  const { PUNTOS: puntos, SECCIONES_DOCUMENTO, REMITENTES, cargando, error } = useProyecto();
   const { seccionActivaProyecto, vistaCompletaProyecto } = useUI();
+  const estadoCarga = error ? 'error' : cargando ? 'cargando' : 'listo';
+  const avisoError = error && (
+    <div className="widget-lista-puntos-error">No se pudo cargar la información: {error.mensaje}</div>
+  );
 
   if (vistaCompletaProyecto) {
     return (
       <div className="widget-lista-puntos-proyecto">
+        {avisoError}
         {SECCIONES_DOCUMENTO.map((s) => (
           <div key={s.id} className="widget-lista-puntos-grupo">
             <div className="widget-lista-puntos-separador">{s.nombre}</div>
-            {listaDeSeccion(puntos, s, REMITENTES)}
+            {listaDeSeccion(puntos, s, REMITENTES, estadoCarga)}
           </div>
         ))}
       </div>
@@ -76,9 +83,11 @@ export default function ListaPuntosProyecto() {
 
   return (
     <div className="widget-lista-puntos-proyecto">
-      {seccion ? listaDeSeccion(puntos, seccion, REMITENTES) : (
-        <div className="widget-lista-puntos-vacio">Sin secciones definidas.</div>
+      {avisoError}
+      {seccion ? listaDeSeccion(puntos, seccion, REMITENTES, estadoCarga) : (
+        estadoCarga === 'listo' && <div className="widget-lista-puntos-vacio">Sin secciones definidas.</div>
       )}
+      {!seccion && estadoCarga === 'cargando' && <div className="widget-lista-puntos-vacio">Cargando…</div>}
     </div>
   );
 }

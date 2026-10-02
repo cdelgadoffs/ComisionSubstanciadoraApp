@@ -29,7 +29,7 @@ function tieneContenido(f) {
 }
 
 export default function FormularioPunto() {
-  const { SECCIONES_DOCUMENTO, REMITENTES, agregarPunto, guardarBorrador, obtenerBorrador, eliminarBorrador } = useProyecto();
+  const { SECCIONES_DOCUMENTO, REMITENTES, agregarPunto, guardarBorrador, obtenerBorrador, eliminarBorrador, error: errorCarga } = useProyecto();
   const { sidebar3Abierto, setSidebar3Abierto, seccionNuevoPunto } = useUI();
   const [form, setForm] = useState(() => estadoVacio(seccionNuevoPunto));
   const [restaurado, setRestaurado] = useState(false);
@@ -176,7 +176,11 @@ export default function FormularioPunto() {
         label="Marcar como confidencial"
       />
 
-      {error && <div className="widget-formulario-punto-error">{error}</div>}
+      {(error || errorCarga) && (
+        <div className="widget-formulario-punto-error">
+          {error || `No se pudo cargar la información: ${errorCarga.mensaje}`}
+        </div>
+      )}
 
       <div className="widget-formulario-punto-acciones">
         <BotonIcono icono="ri-eraser-line" ariaLabel="Borrar formulario" onClick={borrar} />

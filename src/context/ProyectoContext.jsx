@@ -31,8 +31,11 @@ export function ProyectoProvider({ children }) {
   const [sesionActivaFecha, setSesionActivaFecha] = useState(null);
   const [puntos, setPuntos] = useState([]);
   const [catalogos, setCatalogos] = useState(CATALOGOS_VACIOS);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState(null);
+  const [cargas, setCargas] = useState({ catalogos: { cargando: true }, sesiones: { cargando: true }, puntos: {} });
+
+  function marcarCarga(recurso, estado) {
+    setCargas((c) => ({ ...c, [recurso]: estado }));
+  }
 
   useEffect(() => {
     let vigente = true;
@@ -47,8 +50,9 @@ export function ProyectoProvider({ children }) {
         const completos = { ...CATALOGOS_VACIOS, ...c };
         setCatalogos(completos);
         guardarCache(CACHE_CATALOGOS, completos);
+        marcarCarga('catalogos', {});
       })
-      .catch((e) => vigente && setError(e));
+      .catch((e) => vigente && marcarCarga('catalogos', { error: e }));
     return () => { vigente = false; };
   }, []);
 
@@ -65,9 +69,9 @@ export function ProyectoProvider({ children }) {
         const lista = conEtiqueta(sesiones);
         setFechasSesiones(lista);
         guardarCache(CACHE_SESIONES, lista);
+        marcarCarga('sesiones', {});
       })
-      .catch((e) => vigente && setError(e))
-      .finally(() => vigente && setCargando(false));
+      .catch((e) => vigente && marcarCarga('sesiones', { error: e }));
     return () => { vigente = false; };
   }, []);
 
@@ -79,7 +83,11 @@ export function ProyectoProvider({ children }) {
 
   useEffect(() => {
     setPuntos([]);
-    if (!sesionActivaFecha) return;
+    if (!sesionActivaFecha) {
+      marcarCarga('puntos', {});
+      return;
+    }
+    marcarCarga('puntos', { cargando: true });
     let vigente = true;
     let servidorListo = false;
     const clave = cachePuntos(sesionActivaFecha);
@@ -93,8 +101,9 @@ export function ProyectoProvider({ children }) {
         const conEstado = lista.map(conSync);
         setPuntos(conEstado);
         guardarCache(clave, conEstado);
+        marcarCarga('puntos', {});
       })
-      .catch((e) => vigente && setError(e));
+      .catch((e) => vigente && marcarCarga('puntos', { error: e }));
     return () => { vigente = false; };
   }, [sesionActivaFecha]);
 
@@ -120,6 +129,9 @@ export function ProyectoProvider({ children }) {
     setPuntos(nuevos);
     guardarCache(cachePuntos(sesionActivaFecha), nuevos);
   }
+
+  const cargando = Object.values(cargas).some((c) => c.cargando);
+  const error = Object.values(cargas).map((c) => c.error).find(Boolean) ?? null;
 
   const sesionSeleccionada = fechasSesiones.find((f) => f.id === sesionActivaFecha);
   const sesionActual = sesionSeleccionada
