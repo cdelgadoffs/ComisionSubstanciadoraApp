@@ -7,6 +7,7 @@ import MenuPrincipalSesion from '../components/widgets/MenuPrincipalSesion.jsx';
 import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
 import { useUI, ALTO_TOPBAR, ALTO_CINTA } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
+import { encabezadoSesion } from '../utils/sesiones.js';
 import '../styles/pages/Inicio.css';
 
 export default function Inicio() {
@@ -16,7 +17,8 @@ export default function Inicio() {
     sidebar5Ancho,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
-  const { sesionActual } = useProyecto();
+  const { sesionSeleccionada } = useProyecto();
+  const sesionActual = encabezadoSesion(sesionSeleccionada);
   const panelIzquierda = izquierdaSidebar3;
   const arriba = ALTO_TOPBAR + ALTO_CINTA;
   const arribaSidebar = arriba - 1;

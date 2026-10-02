@@ -166,13 +166,10 @@ export function ProyectoProvider({ children }) {
   const error = Object.values(cargas).map((c) => c.error).find(Boolean) ?? null;
 
   const sesionSeleccionada = fechasSesiones.find((f) => f.id === sesionActivaFecha);
-  const sesionActual = sesionSeleccionada
-    ? { titulo: `Sesión Ordinaria N° ${sesionSeleccionada.numeroSesion}`, subtitulo: sesionSeleccionada.label }
-    : { titulo: 'Sesión Ordinaria', subtitulo: 'Fecha por definir' };
   const sesionFinalizada = !!sesionSeleccionada?.celebrada;
 
   const value = {
-    sesionActual,
+    sesionSeleccionada,
     SECCIONES_DOCUMENTO: catalogos.secciones, REMITENTES: catalogos.remitentes,
     FECHAS_SESIONES: fechasSesiones,
     sesionActivaFecha, cargarSesion,

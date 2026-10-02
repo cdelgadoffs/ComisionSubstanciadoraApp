@@ -6,6 +6,7 @@ import MenuPrincipalSesion from '../components/widgets/MenuPrincipalSesion.jsx';
 import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
 import { useUI } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
+import { encabezadoSesion } from '../utils/sesiones.js';
 import '../styles/pages/Historial.css';
 
 export default function Historial() {
@@ -15,7 +16,8 @@ export default function Historial() {
     sidebar5Ancho,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
-  const { sesionActual } = useProyecto();
+  const { sesionSeleccionada } = useProyecto();
+  const sesionActual = encabezadoSesion(sesionSeleccionada);
   const panelIzquierda = izquierdaSidebar3;
 
   return (

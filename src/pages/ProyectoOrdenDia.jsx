@@ -11,6 +11,7 @@ import ListaPuntosProyecto from '../components/widgets/ListaPuntosProyecto.jsx';
 import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
 import { useUI, ANCHO_SIDEBAR3, ALTO_TOPBAR, ALTO_CINTA } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
+import { encabezadoSesion } from '../utils/sesiones.js';
 import '../styles/pages/ProyectoOrdenDia.css';
 
 export default function ProyectoOrdenDia() {
@@ -22,7 +23,8 @@ export default function ProyectoOrdenDia() {
     vistaCompletaProyecto, setVistaCompletaProyecto,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
-  const { sesionActual } = useProyecto();
+  const { sesionSeleccionada } = useProyecto();
+  const sesionActual = encabezadoSesion(sesionSeleccionada);
   const panelIzquierda = izquierdaSidebar3 + (sidebar3Abierto ? ANCHO_SIDEBAR3 : 0);
   const arriba = ALTO_TOPBAR + ALTO_CINTA;
   const arribaSidebar = arriba - 1;
