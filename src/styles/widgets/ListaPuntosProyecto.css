@@ -104,10 +104,24 @@
   border-top: 1px solid #c9c9ca;
   background: #fafbfc;
 }
-.widget-lista-puntos-archivo {
-  background: #e8f0fe;
-  color: #1a56db;
-  padding: 4px 10px;
-  border-radius: 10px;
-  font-size: 11px;
+
+.widget-lista-puntos-proyecto .base-card .widget-opciones-aud,
+.widget-lista-puntos-proyecto .base-card .widget-opciones-navegacion {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.widget-lista-puntos-proyecto .base-card:hover .widget-opciones-aud,
+.widget-lista-puntos-proyecto .base-card:hover .widget-opciones-navegacion,
+.widget-lista-puntos-proyecto .base-card:focus-within .widget-opciones-aud,
+.widget-lista-puntos-proyecto .base-card:focus-within .widget-opciones-navegacion {
+  opacity: 1;
+}
+@media (hover: none) {
+  .widget-lista-puntos-proyecto .base-card .widget-opciones-aud,
+  .widget-lista-puntos-proyecto .base-card .widget-opciones-navegacion {
+    opacity: 1;
+  }
+}
+.widget-lista-puntos-header .widget-opciones-navegacion {
+  flex-direction: row;
 }

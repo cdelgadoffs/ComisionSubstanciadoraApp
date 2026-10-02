@@ -1,5 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { listarCatalogos, listarSesiones, crearSesiones, celebrarSesion, listarPuntos, crearPunto } from '../services/api.js';
+import {
+  listarCatalogos, listarSesiones, crearSesiones, celebrarSesion,
+  listarPuntos, crearPunto, reordenarPuntos as reordenarPuntosEnApi,
+  editarPunto as editarPuntoEnApi, eliminarPunto as eliminarPuntoEnApi,
+  adjuntarArchivos as adjuntarArchivosEnApi, eliminarArchivo as eliminarArchivoEnApi,
+  descargarArchivo as descargarArchivoEnApi,
+} from '../services/api.js';
 import {
   guardarBorrador, obtenerBorrador, eliminarBorrador,
   guardarCache, obtenerCache,
@@ -14,10 +20,6 @@ const cachePuntos = (sesionId) => `puntos:${sesionId}`;
 
 const conEtiqueta = (sesiones) => sesiones.map((s) => ({ ...s, label: etiquetaFecha(s.id) }));
 const conSync = (punto) => ({ ...punto, sincronizacion: 'servidor' });
-
-const nuevoPunto = {
-  badge: 'Nuevo punto',
-};
 
 const CATALOGOS_VACIOS = { secciones: [], remitentes: [] };
 
@@ -118,11 +120,46 @@ export function ProyectoProvider({ children }) {
     await celebrarSesion(sesionActivaFecha);
     aplicarSesiones(await listarSesiones());
   }
+  function aplicarPuntos(lista) {
+    setPuntos(lista);
+    guardarCache(cachePuntos(sesionActivaFecha), lista);
+  }
   async function agregarPunto(datos) {
     const creado = conSync(await crearPunto(sesionActivaFecha, datos));
-    const nuevos = [...puntos, creado];
-    setPuntos(nuevos);
-    guardarCache(cachePuntos(sesionActivaFecha), nuevos);
+    aplicarPuntos([...puntos, creado]);
+  }
+  async function editarPunto(id, version, cambios) {
+    try {
+      const editado = conSync(await editarPuntoEnApi(id, version, cambios));
+      aplicarPuntos(puntos.map((p) => (p.id === id ? editado : p)));
+    } catch (e) {
+      if (e.codigo === 'CONFLICTO') aplicarPuntos((await listarPuntos(sesionActivaFecha)).map(conSync));
+      throw e;
+    }
+  }
+  async function eliminarPunto(id) {
+    await eliminarPuntoEnApi(id);
+    aplicarPuntos(puntos.filter((p) => p.id !== id));
+  }
+  async function reordenarPuntos(seccion, ids) {
+    try {
+      const reordenados = (await reordenarPuntosEnApi(sesionActivaFecha, seccion, ids)).map(conSync);
+      aplicarPuntos([...puntos.filter((p) => p.seccion !== seccion), ...reordenados]);
+    } catch (e) {
+      if (e.codigo === 'CONFLICTO') aplicarPuntos((await listarPuntos(sesionActivaFecha)).map(conSync));
+      throw e;
+    }
+  }
+  async function adjuntarArchivos(puntoId, archivos) {
+    const editado = conSync(await adjuntarArchivosEnApi(puntoId, archivos));
+    aplicarPuntos(puntos.map((p) => (p.id === puntoId ? editado : p)));
+  }
+  async function eliminarArchivo(puntoId, archivoId) {
+    const editado = conSync(await eliminarArchivoEnApi(puntoId, archivoId));
+    aplicarPuntos(puntos.map((p) => (p.id === puntoId ? editado : p)));
+  }
+  function descargarArchivo(archivoId) {
+    return descargarArchivoEnApi(archivoId);
   }
 
   const cargando = Object.values(cargas).some((c) => c.cargando);
@@ -135,12 +172,13 @@ export function ProyectoProvider({ children }) {
   const sesionFinalizada = !!sesionSeleccionada?.celebrada;
 
   const value = {
-    sesionActual, nuevoPunto,
+    sesionActual,
     SECCIONES_DOCUMENTO: catalogos.secciones, REMITENTES: catalogos.remitentes,
     FECHAS_SESIONES: fechasSesiones,
     sesionActivaFecha, cargarSesion,
     sesionFinalizada, finalizarSesion,
-    PUNTOS: puntos, agregarPunto,
+    PUNTOS: puntos, agregarPunto, editarPunto, eliminarPunto, reordenarPuntos,
+    adjuntarArchivos, eliminarArchivo, descargarArchivo,
     agregarSesiones,
     guardarBorrador, obtenerBorrador, eliminarBorrador,
     cargando, error,

@@ -1,7 +1,10 @@
 import { ApiError } from '../ApiError.js';
 
-const CAMPOS_PUNTO = ['seccion', 'remitente', 'contenido', 'acuerdo', 'confidencial', 'archivos'];
+const CAMPOS_PUNTO = ['seccion', 'remitente', 'contenido', 'acuerdo', 'confidencial'];
 const MAX_TEXTO = 20000;
+const MAX_BYTES_ARCHIVO = 100 * 1024 * 1024;
+const MAX_ARCHIVOS_PUNTO = 30;
+const EXTENSIONES_PERMITIDAS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'gif', 'webp'];
 
 const USUARIO = { id: 'usuario-local', nombre: 'Capturista local', rol: 'capturista' };
 
@@ -86,9 +89,35 @@ export function validarPunto(p, catalogos) {
   }
   if (acuerdo.length > MAX_TEXTO) throw new ApiError('VALIDACION', 'El acuerdo es demasiado largo.');
   if (typeof p.confidencial !== 'boolean') throw new ApiError('VALIDACION', 'Indicador de confidencialidad inválido.');
-  if (!Array.isArray(p.archivos) || p.archivos.some((a) => !a || typeof a.nombre !== 'string')) {
-    throw new ApiError('VALIDACION', 'Lista de archivos inválida.');
+}
+
+export function validarArchivos(archivos, yaAdjuntos = 0) {
+  if (!Array.isArray(archivos)) throw new ApiError('ARCHIVO_INVALIDO', 'Lista de archivos inválida.');
+  if (yaAdjuntos + archivos.length > MAX_ARCHIVOS_PUNTO) {
+    throw new ApiError('ARCHIVO_INVALIDO', `Un punto admite como máximo ${MAX_ARCHIVOS_PUNTO} archivos.`);
   }
+  archivos.forEach((a) => {
+    if (!(a instanceof File) || a.name.length === 0) throw new ApiError('ARCHIVO_INVALIDO', 'Archivo inválido.');
+    const extension = a.name.split('.').pop().toLowerCase();
+    if (!EXTENSIONES_PERMITIDAS.includes(extension)) {
+      throw new ApiError('ARCHIVO_INVALIDO', `«${a.name}»: tipo de archivo no permitido.`);
+    }
+    if (a.size > MAX_BYTES_ARCHIVO) {
+      throw new ApiError('ARCHIVO_INVALIDO', `«${a.name}» supera el máximo de 100 MB.`);
+    }
+  });
+}
+
+export function prepararArchivos(puntoId, archivos) {
+  const ahora = new Date().toISOString();
+  const creadoPor = USUARIO.id;
+  const registros = archivos.map((a) => ({
+    id: crypto.randomUUID(), puntoId, nombre: a.name, tipo: a.type, tamano: a.size, creadoEn: ahora, creadoPor, blob: a,
+  }));
+  const metadatos = registros.map((r) => ({
+    id: r.id, nombre: r.nombre, tipo: r.tipo, tamano: r.tamano, creadoEn: r.creadoEn, creadoPor: r.creadoPor,
+  }));
+  return { registros, metadatos };
 }
 
 export function normalizarPunto(p, catalogos) {
@@ -99,6 +128,5 @@ export function normalizarPunto(p, catalogos) {
     contenido: p.contenido.trim(),
     acuerdo: seccion.requiereAcuerdo ? (p.acuerdo || '').trim() : '',
     confidencial: p.confidencial,
-    archivos: p.archivos.map((a) => ({ nombre: a.nombre })),
   };
 }

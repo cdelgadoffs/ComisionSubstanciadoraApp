@@ -1,9 +1,13 @@
 import { ApiError } from '../ApiError.js';
-import { STORE_SESIONES, STORE_PUNTOS, STORE_CATALOGOS, obtenerTodos, obtener, guardar, eliminar } from './db.js';
+import {
+  STORE_SESIONES, STORE_PUNTOS, STORE_CATALOGOS, STORE_ARCHIVOS,
+  obtenerTodos, obtener, guardar, escribirVarios,
+} from './db.js';
 import {
   usuarioActual, exigirEscritura, puedeVerConfidencial,
   validarFechasISO, calcularEstados,
   camposPunto, validarPunto, normalizarPunto,
+  validarArchivos, prepararArchivos,
 } from './reglas.js';
 
 async function exigirSesionAbierta(sesionId) {
@@ -11,6 +15,17 @@ async function exigirSesionAbierta(sesionId) {
   if (!sesion) throw new ApiError('NO_ENCONTRADO', 'La sesión no existe.');
   if (sesion.celebrada) throw new ApiError('SESION_CELEBRADA', 'La sesión ya fue celebrada y no admite cambios.');
   return sesion;
+}
+
+function porOrden(a, b) {
+  if (a.orden !== b.orden) return a.orden - b.orden;
+  if (a.creadoEn !== b.creadoEn) return a.creadoEn < b.creadoEn ? -1 : 1;
+  return a.id < b.id ? -1 : 1;
+}
+
+function siguienteOrden(todos, sesionId, seccion) {
+  const ordenes = todos.filter((p) => p.sesionId === sesionId && p.seccion === seccion).map((p) => p.orden);
+  return Math.max(0, ...ordenes) + 1;
 }
 
 export async function listarCatalogos() {
@@ -54,7 +69,7 @@ export async function listarPuntos(sesionId) {
   const verConfidencial = puedeVerConfidencial();
   return todos
     .filter((p) => p.sesionId === sesionId && (verConfidencial || !p.confidencial))
-    .sort((a, b) => (a.creadoEn === b.creadoEn ? (a.id < b.id ? -1 : 1) : (a.creadoEn < b.creadoEn ? -1 : 1)));
+    .sort(porOrden);
 }
 
 export async function crearPunto(sesionId, datos) {
@@ -63,17 +78,29 @@ export async function crearPunto(sesionId, datos) {
   await exigirSesionAbierta(sesionId);
   const catalogos = await listarCatalogos();
   validarPunto(datos, catalogos);
+  const archivos = Array.from(datos.archivos || []);
+  validarArchivos(archivos);
+  const id = crypto.randomUUID();
+  const { registros, metadatos } = prepararArchivos(id, archivos);
+  const orden = siguienteOrden(await obtenerTodos(STORE_PUNTOS), sesionId, datos.seccion);
   const ahora = new Date().toISOString();
   const punto = {
-    id: crypto.randomUUID(),
+    id,
     sesionId,
     ...normalizarPunto(datos, catalogos),
+    archivos: metadatos,
+    orden,
     version: 1,
     creadoPor: usuarioActual().id,
     creadoEn: ahora,
     modificadoEn: ahora,
   };
-  await guardar(STORE_PUNTOS, punto);
+  await escribirVarios({
+    poner: [
+      { store: STORE_PUNTOS, valor: punto },
+      ...registros.map((valor) => ({ store: STORE_ARCHIVOS, valor })),
+    ],
+  });
   return punto;
 }
 
@@ -88,9 +115,11 @@ export async function editarPunto(id, version, cambios) {
   const combinado = { ...actual, ...camposPunto(cambios) };
   const catalogos = await listarCatalogos();
   validarPunto(combinado, catalogos);
+  const cambiaSeccion = combinado.seccion !== actual.seccion;
   const punto = {
     ...actual,
     ...normalizarPunto(combinado, catalogos),
+    orden: cambiaSeccion ? siguienteOrden(await obtenerTodos(STORE_PUNTOS), actual.sesionId, combinado.seccion) : actual.orden,
     version: actual.version + 1,
     modificadoEn: new Date().toISOString(),
   };
@@ -103,5 +132,91 @@ export async function eliminarPunto(id) {
   const actual = await obtener(STORE_PUNTOS, id);
   if (!actual) throw new ApiError('NO_ENCONTRADO', 'El punto no existe.');
   await exigirSesionAbierta(actual.sesionId);
-  await eliminar(STORE_PUNTOS, id);
+  await escribirVarios({
+    borrar: [
+      { store: STORE_PUNTOS, id },
+      ...actual.archivos.filter((a) => a.id).map((a) => ({ store: STORE_ARCHIVOS, id: a.id })),
+    ],
+  });
+}
+
+export async function adjuntarArchivos(puntoId, archivos) {
+  exigirEscritura();
+  const actual = await obtener(STORE_PUNTOS, puntoId);
+  if (!actual) throw new ApiError('NO_ENCONTRADO', 'El punto no existe.');
+  await exigirSesionAbierta(actual.sesionId);
+  const nuevos = Array.from(archivos || []);
+  validarArchivos(nuevos, actual.archivos.length);
+  const { registros, metadatos } = prepararArchivos(puntoId, nuevos);
+  const punto = {
+    ...actual,
+    archivos: [...actual.archivos, ...metadatos],
+    version: actual.version + 1,
+    modificadoEn: new Date().toISOString(),
+  };
+  await escribirVarios({
+    poner: [
+      { store: STORE_PUNTOS, valor: punto },
+      ...registros.map((valor) => ({ store: STORE_ARCHIVOS, valor })),
+    ],
+  });
+  return punto;
+}
+
+export async function eliminarArchivo(puntoId, archivoId) {
+  exigirEscritura();
+  const actual = await obtener(STORE_PUNTOS, puntoId);
+  if (!actual) throw new ApiError('NO_ENCONTRADO', 'El punto no existe.');
+  await exigirSesionAbierta(actual.sesionId);
+  if (!actual.archivos.some((a) => a.id === archivoId)) throw new ApiError('NO_ENCONTRADO', 'El archivo no existe.');
+  const punto = {
+    ...actual,
+    archivos: actual.archivos.filter((a) => a.id !== archivoId),
+    version: actual.version + 1,
+    modificadoEn: new Date().toISOString(),
+  };
+  await escribirVarios({
+    poner: [{ store: STORE_PUNTOS, valor: punto }],
+    borrar: [{ store: STORE_ARCHIVOS, id: archivoId }],
+  });
+  return punto;
+}
+
+export async function descargarArchivo(archivoId) {
+  const registro = await obtener(STORE_ARCHIVOS, archivoId);
+  if (!registro) throw new ApiError('NO_ENCONTRADO', 'El archivo no existe.');
+  const punto = await obtener(STORE_PUNTOS, registro.puntoId);
+  if (!punto) throw new ApiError('NO_ENCONTRADO', 'El archivo no existe.');
+  if (punto.confidencial && !puedeVerConfidencial()) {
+    throw new ApiError('NO_AUTORIZADO', 'No tienes permiso para ver este archivo.');
+  }
+  return { nombre: registro.nombre, tipo: registro.tipo, blob: registro.blob };
+}
+
+export async function reordenarPuntos(sesionId, seccion, ids) {
+  exigirEscritura();
+  await exigirSesionAbierta(sesionId);
+  const catalogos = await listarCatalogos();
+  if (!catalogos.secciones.some((s) => s.id === seccion)) throw new ApiError('VALIDACION', 'Sección inválida.');
+  if (!Array.isArray(ids)) throw new ApiError('VALIDACION', 'El orden debe ser una lista de ids.');
+  const actuales = (await obtenerTodos(STORE_PUNTOS))
+    .filter((p) => p.sesionId === sesionId && p.seccion === seccion)
+    .sort(porOrden);
+  const mismoConjunto = ids.length === actuales.length
+    && new Set(ids).size === ids.length
+    && ids.every((id) => actuales.some((p) => p.id === id));
+  if (!mismoConjunto) {
+    throw new ApiError('CONFLICTO', 'Los puntos de la sección cambiaron. Recarga e intenta de nuevo.');
+  }
+  const ahora = new Date().toISOString();
+  const cambiados = [];
+  const resultado = ids.map((id, i) => {
+    const actual = actuales.find((p) => p.id === id);
+    if (actual.orden === i + 1) return actual;
+    const nuevo = { ...actual, orden: i + 1, version: actual.version + 1, modificadoEn: ahora };
+    cambiados.push(nuevo);
+    return nuevo;
+  });
+  await escribirVarios({ poner: cambiados.map((valor) => ({ store: STORE_PUNTOS, valor })) });
+  return resultado;
 }

@@ -16,13 +16,13 @@ import '../styles/pages/ProyectoOrdenDia.css';
 export default function ProyectoOrdenDia() {
   const {
     izquierdaSidebar1, izquierdaSidebar3,
-    sidebar3Abierto, setSidebar3Abierto,
+    sidebar3Abierto, cerrarSidebar3, puntoEnEdicionId,
     sidebar5Abierto, cerrarSidebar5,
     sidebar5Ancho,
     vistaCompletaProyecto, setVistaCompletaProyecto,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
-  const { sesionActual, nuevoPunto } = useProyecto();
+  const { sesionActual } = useProyecto();
   const panelIzquierda = izquierdaSidebar3 + (sidebar3Abierto ? ANCHO_SIDEBAR3 : 0);
   const arriba = ALTO_TOPBAR + ALTO_CINTA;
   const arribaSidebar = arriba - 1;
@@ -53,8 +53,8 @@ export default function ProyectoOrdenDia() {
         abierto={sidebar3Abierto}
         izquierda={izquierdaSidebar3}
         arriba={arribaSidebar}
-        badge={nuevoPunto.badge}
-        onCerrar={() => setSidebar3Abierto(false)}
+        badge={puntoEnEdicionId ? 'Editar punto' : 'Nuevo punto'}
+        onCerrar={cerrarSidebar3}
       >
         <FormularioPunto />
       </Sidebar3>

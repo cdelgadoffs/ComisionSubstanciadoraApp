@@ -2,6 +2,7 @@ import { useState } from 'react';
 import FechasSesiones from '../base/FechasSesiones.jsx';
 import ListaExpandible from '../base/ListaExpandible.jsx';
 import BotonIcono from '../base/BotonIcono.jsx';
+import OpcionesNavegacion from './OpcionesNavegacion.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
 import { MESES } from '../../utils/meses.js';
 import '../../styles/widgets/CintaSesiones.css';
@@ -48,13 +49,16 @@ export default function CintaSesiones({ textoVacio }) {
 
   return (
     <div className="widget-cinta-sesiones">
-      <div className="widget-cinta-sesiones-nav">
-        <BotonIcono icono="ri-arrow-left-s-line" ariaLabel="Mes anterior" onClick={() => avanzarMes(-1)} />
-        <BotonIcono icono="ri-arrow-right-s-line" ariaLabel="Mes siguiente" onClick={() => avanzarMes(1)} />
+      <OpcionesNavegacion
+        onAnterior={() => avanzarMes(-1)}
+        onSiguiente={() => avanzarMes(1)}
+        etiquetaAnterior="Mes anterior"
+        etiquetaSiguiente="Mes siguiente"
+      >
         {mostrarVolverProxima && (
           <BotonIcono icono="ri-arrow-go-back-line" ariaLabel="Volver a la próxima sesión" onClick={volverAProxima} />
         )}
-      </div>
+      </OpcionesNavegacion>
       <ListaExpandible
         valorActual={mesFiltro}
         etiquetaActual={etiquetaActual}

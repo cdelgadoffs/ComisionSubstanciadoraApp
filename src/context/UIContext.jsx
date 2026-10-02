@@ -19,6 +19,7 @@ export function UIProvider({ children }) {
   const [vistaActual, setVistaActual] = useState('inicio');
   const [acordeonAbierto, setAcordeonAbierto] = useState(false);
   const [seccionNuevoPunto, setSeccionNuevoPunto] = useState(null);
+  const [puntoEnEdicionId, setPuntoEnEdicionId] = useState(null);
   const [seccionActivaProyecto, setSeccionActivaProyecto] = useState(null);
   const [vistaCompletaProyecto, setVistaCompletaProyecto] = useState(false);
 
@@ -30,13 +31,21 @@ export function UIProvider({ children }) {
     if (sidebar5Abierto) setPanelControlActivo(null);
     setSidebar5Abierto((a) => !a);
   }
+  function abrirEdicionPunto(id) {
+    setPuntoEnEdicionId(id);
+    setSidebar3Abierto(true);
+  }
+  function cerrarSidebar3() {
+    setSidebar3Abierto(false);
+    setPuntoEnEdicionId(null);
+  }
   function cerrarSidebar5() {
     setSidebar5Abierto(false);
     setPanelControlActivo(null);
   }
 
   const value = {
-    sidebar3Abierto, setSidebar3Abierto,
+    sidebar3Abierto, setSidebar3Abierto, cerrarSidebar3,
     sidebar4Abierto, setSidebar4Abierto,
     sidebar5Abierto, toggleSidebar5, cerrarSidebar5,
     sidebar5Ancho, setSidebar5Ancho,
@@ -46,6 +55,7 @@ export function UIProvider({ children }) {
     vistaActual, setVistaActual,
     acordeonAbierto, setAcordeonAbierto,
     seccionNuevoPunto, setSeccionNuevoPunto,
+    puntoEnEdicionId, setPuntoEnEdicionId, abrirEdicionPunto,
     seccionActivaProyecto, setSeccionActivaProyecto,
     vistaCompletaProyecto, setVistaCompletaProyecto,
     izquierdaSidebar1, izquierdaSidebar2, izquierdaSidebar3,

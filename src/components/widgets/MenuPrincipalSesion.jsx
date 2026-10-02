@@ -16,6 +16,7 @@ export default function MenuPrincipalSesion() {
     vistaActual, setVistaActual,
     acordeonAbierto, setAcordeonAbierto,
     sidebar3Abierto, setSidebar3Abierto, setSeccionNuevoPunto,
+    puntoEnEdicionId, setPuntoEnEdicionId,
     seccionActivaProyecto, setSeccionActivaProyecto,
   } = useUI();
 
@@ -30,7 +31,7 @@ export default function MenuPrincipalSesion() {
 
   function seleccionarSeccion(seccionId) {
     setSeccionActivaProyecto(seccionId);
-    if (sidebar3Abierto) setSeccionNuevoPunto(seccionId);
+    if (sidebar3Abierto && !puntoEnEdicionId) setSeccionNuevoPunto(seccionId);
   }
 
   function seleccionarVista(v) {
@@ -69,7 +70,7 @@ export default function MenuPrincipalSesion() {
                 subtitulo={avisoSecciones}
                 activoId={seccionActivaProyecto}
                 onSeleccionar={seleccionarSeccion}
-                onAgregar={(seccionId) => { setSeccionActivaProyecto(seccionId); setSeccionNuevoPunto(seccionId); setSidebar3Abierto(true); }}
+                onAgregar={(seccionId) => { setSeccionActivaProyecto(seccionId); setPuntoEnEdicionId(null); setSeccionNuevoPunto(seccionId); setSidebar3Abierto(true); }}
                 iconoAgregar="+"
               />
             )}

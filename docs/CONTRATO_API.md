@@ -37,9 +37,31 @@ Reglas de `estado` (con la fecha de hoy del servidor, entre sesiones ordenadas p
 | `contenido` | string | Obligatorio, máx. 20 000 caracteres. |
 | `acuerdo` | string | Obligatorio si la sección tiene `requiereAcuerdo: true`; si no, se guarda vacío. Máx. 20 000. |
 | `confidencial` | bool | |
-| `archivos` | `[{ nombre }]` | Hoy solo el nombre (sin almacenamiento real de archivos todavía). |
+| `archivos` | `Archivo[]` | Metadatos de los archivos adjuntos (ver "Archivo"). |
+| `orden` | int | Posición dentro de su (sesión, sección), 1…n (ver "Orden"). |
 | `version` | int | |
 | `creadoPor`, `creadoEn`, `modificadoEn` | string | Autoría y fechas, del servidor. |
+
+### Archivo
+| Campo | Tipo | Notas |
+|---|---|---|
+| `id` | string | Asignado por el servidor. |
+| `nombre` | string | Nombre original del archivo. |
+| `tipo` | string | Tipo MIME. |
+| `tamano` | int | Bytes. |
+| `creadoEn`, `creadoPor` | string | Del servidor. |
+
+`Punto.archivos` es `Archivo[]`. Reglas, todas del servidor (los valores se editan en `LocalAPI/reglas.js` y en el backend):
+- Máximo **100 MB por archivo** y **30 archivos por punto**.
+- Tipos permitidos: PDF, Word (`.doc`, `.docx`), Excel (`.xls`, `.xlsx`) e imágenes (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`). Cualquier otro → `ARCHIVO_INVALIDO`.
+- El contenido binario nunca viaja dentro del `Punto`: se obtiene con `descargarArchivo`. El caché del cliente guarda solo los metadatos.
+
+### Orden
+- `Punto.orden`: entero (1…n) dentro de cada (`sesionId`, `seccion`). Al crear un punto queda **al final** de su sección. `listarPuntos` devuelve ordenado por `orden`.
+- No tiene que ser contiguo tras eliminar; `reordenarPuntos` lo reescribe a 1…n.
+- Solo cambian de `version` y `modificadoEn` los puntos cuyo `orden` cambió.
+- Si `editarPunto` cambia la `seccion` de un punto, queda **al final** de la nueva sección.
+- Los puntos creados antes de existir `orden` reciben uno al actualizar la base, según su fecha de creación.
 
 ### Catálogos
 
@@ -62,10 +84,24 @@ Lo que **no** es catálogo y vive solo en el cliente: la estructura de la interf
 | `listarSesiones()` | — | `Sesion[]` (con derivados, ordenadas por `id`) | — |
 | `crearSesiones(fechas)` | `string[]` de fechas `YYYY-MM-DD` | `Sesion[]` (la lista completa actualizada) | `NO_AUTORIZADO`, `VALIDACION` |
 | `celebrarSesion(id)` | id de sesión | `Sesion` actualizada | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA` |
-| `listarPuntos(sesionId)` | id de sesión | `Punto[]` (orden de creación, **ya filtrados según el usuario**) | — |
+| `listarPuntos(sesionId)` | id de sesión | `Punto[]` (ordenados por `orden`, **ya filtrados según el usuario**) | — |
 | `crearPunto(sesionId, datos)` | sesión + `{ seccion, remitente, contenido, acuerdo, confidencial, archivos }` | `Punto` creado | `NO_AUTORIZADO`, `VALIDACION`, `NO_ENCONTRADO`, `SESION_CELEBRADA` |
 | `editarPunto(id, version, cambios)` | id, `version` que el cliente tiene, campos a cambiar | `Punto` actualizado | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA`, `CONFLICTO`, `VALIDACION` |
 | `eliminarPunto(id)` | id | — | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA` |
+
+### Operaciones de archivos y de orden
+
+| Operación | Entrada | Salida | Errores |
+|---|---|---|---|
+| `adjuntarArchivos(puntoId, archivos)` | id de punto + archivos (binarios) | `Punto` actualizado (`version` + 1) | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA`, `ARCHIVO_INVALIDO` |
+| `eliminarArchivo(puntoId, archivoId)` | ids | `Punto` actualizado | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA` |
+| `descargarArchivo(archivoId)` | id | `{ nombre, tipo, blob }` (en el servidor real, una URL firmada) | `NO_AUTORIZADO`, `NO_ENCONTRADO` |
+| `reordenarPuntos(sesionId, seccion, ids)` | sesión, sección e **ids de la sección en el orden deseado** | `Punto[]` de esa sección, ya ordenados | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA`, `CONFLICTO`, `VALIDACION` |
+
+- `crearPunto` acepta `archivos` (binarios) opcionales y los valida con las mismas reglas de `adjuntarArchivos`. El formato antiguo `[{ nombre }]` se rechaza con `ARCHIVO_INVALIDO`.
+- Las operaciones que tocan el punto y sus binarios (crear con archivos, adjuntar, quitar, y la cascada al eliminar el punto) son **atómicas**: o se aplican todas o ninguna.
+- `editarPunto` **no** modifica `archivos` ni `orden`: para eso están `adjuntarArchivos`, `eliminarArchivo` y `reordenarPuntos`.
+- `reordenarPuntos` recibe el orden **completo** de la sección (atómico e idempotente: repetir el mismo orden no cambia nada). Si `ids` no es exactamente el conjunto actual de puntos de esa sección → `CONFLICTO` y el cliente recarga. Sección inexistente o `ids` que no es una lista → `VALIDACION`.
 
 Notas de comportamiento:
 - `crearSesiones` es **idempotente**: las fechas que ya existen se ignoran (no resetea `celebrada`); devuelve siempre la lista completa porque los derivados de las demás sesiones pueden cambiar.
@@ -82,6 +118,7 @@ Notas de comportamiento:
 | `VALIDACION` | Datos inválidos (fecha, sección, remitente, campos obligatorios, longitudes). |
 | `CONFLICTO` | `version` desactualizada. |
 | `SESION_CELEBRADA` | La operación no aplica a una sesión ya celebrada. |
+| `ARCHIVO_INVALIDO` | Archivo con tipo no permitido, que excede el tamaño (100 MB) o que supera el máximo por punto (30). |
 | `NO_IMPLEMENTADO` | Solo `ServerConnection` mientras no exista backend. |
 
 ## Permisos
@@ -97,6 +134,6 @@ Las restricciones finas de lectura por remitente/colaborador están por definir;
 
 - Estado de publicación de la sesión (`en preparación` → `publicado` → `celebrada`): si los lectores ven los puntos al crearse o al publicarse.
 - Administración de catálogos (hoy solo lectura; las filas se cargan por semilla).
-- Almacenamiento, subida y descarga real de archivos (URLs firmadas, límites, antivirus).
+- Archivos en el servidor real: URLs firmadas, antivirus y cuotas totales (los límites por archivo y por punto ya están definidos arriba).
 - Autenticación (MSAL) y origen del rol.
 - Auditoría (bitácora de cambios).

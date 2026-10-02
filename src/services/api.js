@@ -11,4 +11,8 @@ export const {
   crearPunto,
   editarPunto,
   eliminarPunto,
+  reordenarPuntos,
+  adjuntarArchivos,
+  eliminarArchivo,
+  descargarArchivo,
 } = implementacion;

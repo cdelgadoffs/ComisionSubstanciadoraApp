@@ -1,10 +1,15 @@
+import { useState } from 'react';
 import Card from '../base/Card.jsx';
 import IndicadorSync from '../base/IndicadorSync.jsx';
+import BadgeDinamico from '../base/BadgeDinamico.jsx';
+import OpcionesAUD from './OpcionesAUD.jsx';
+import OpcionesNavegacion from './OpcionesNavegacion.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
 import { useUI } from '../../context/UIContext.jsx';
+import { estiloArchivo, guardarEnDisco } from '../../utils/archivos.js';
 import '../../styles/widgets/ListaPuntosProyecto.css';
 
-function TarjetaPunto({ punto, titulo, requiereAcuerdo, nombreRemitente }) {
+function TarjetaPunto({ punto, titulo, requiereAcuerdo, nombreRemitente, opciones, onDescargar }) {
   const esInforme = !requiereAcuerdo;
   return (
     <Card>
@@ -13,6 +18,7 @@ function TarjetaPunto({ punto, titulo, requiereAcuerdo, nombreRemitente }) {
           {titulo}
         </span>
         <div className="widget-lista-puntos-header-derecha">
+          {opciones}
           <IndicadorSync estado={punto.sincronizacion} />
           <span className="widget-lista-puntos-dependencia">{nombreRemitente}</span>
         </div>
@@ -29,16 +35,25 @@ function TarjetaPunto({ punto, titulo, requiereAcuerdo, nombreRemitente }) {
       )}
       {punto.archivos.length > 0 && (
         <div className="widget-lista-puntos-archivos">
-          {punto.archivos.map((a, i) => (
-            <span key={i} className="widget-lista-puntos-archivo">{a.nombre}</span>
-          ))}
+          {punto.archivos.map((a, i) => {
+            const { icono, tono } = estiloArchivo(a.nombre);
+            return (
+              <BadgeDinamico
+                key={a.id ?? i}
+                texto={a.nombre}
+                icono={icono}
+                tono={tono}
+                onClick={a.id ? () => onDescargar(a) : undefined}
+              />
+            );
+          })}
         </div>
       )}
     </Card>
   );
 }
 
-function listaDeSeccion(puntos, seccion, remitentes, estadoCarga) {
+function listaDeSeccion(puntos, seccion, remitentes, estadoCarga, renderOpciones, onDescargar) {
   const deLaSeccion = puntos.filter((p) => p.seccion === seccion.id);
   if (deLaSeccion.length === 0) {
     if (estadoCarga === 'error') return null;
@@ -52,17 +67,64 @@ function listaDeSeccion(puntos, seccion, remitentes, estadoCarga) {
       titulo={`${seccion.nombre} ${i + 1}`}
       requiereAcuerdo={seccion.requiereAcuerdo}
       nombreRemitente={remitentes.find((r) => r.id === p.remitente)?.nombre ?? p.remitente}
+      opciones={renderOpciones(p, i, deLaSeccion, seccion.id)}
+      onDescargar={onDescargar}
     />
   ));
 }
 
-export default function ListaPuntosProyecto() {
-  const { PUNTOS: puntos, SECCIONES_DOCUMENTO, REMITENTES, cargando, error } = useProyecto();
+export default function ListaPuntosProyecto({ opcionesOcultas = [], opcionesExtra }) {
+  const { PUNTOS: puntos, SECCIONES_DOCUMENTO, REMITENTES, sesionFinalizada, descargarArchivo, reordenarPuntos, cargando, error } = useProyecto();
+  const [errorAccion, setErrorAccion] = useState(null);
+  const [moviendo, setMoviendo] = useState(false);
   const { seccionActivaProyecto, vistaCompletaProyecto } = useUI();
   const estadoCarga = error ? 'error' : cargando ? 'cargando' : 'listo';
-  const avisoError = error && (
-    <div className="widget-lista-puntos-error">No se pudo cargar la información: {error.mensaje}</div>
+  const avisoError = (error || errorAccion) && (
+    <div className="widget-lista-puntos-error">
+      {error ? `No se pudo cargar la información: ${error.mensaje}` : errorAccion}
+    </div>
   );
+  async function descargar(archivo) {
+    setErrorAccion(null);
+    try {
+      const { nombre, blob } = await descargarArchivo(archivo.id);
+      guardarEnDisco(nombre, blob);
+    } catch (e) {
+      setErrorAccion(e.mensaje || 'No se pudo descargar el archivo.');
+    }
+  }
+  async function mover(seccionId, deLaSeccion, indice, delta) {
+    if (moviendo) return;
+    const ids = deLaSeccion.map((p) => p.id);
+    [ids[indice], ids[indice + delta]] = [ids[indice + delta], ids[indice]];
+    setMoviendo(true);
+    setErrorAccion(null);
+    try {
+      await reordenarPuntos(seccionId, ids);
+    } catch (e) {
+      setErrorAccion(e.mensaje || 'No se pudo mover el punto.');
+    } finally {
+      setMoviendo(false);
+    }
+  }
+  const renderOpciones = (punto, indice, deLaSeccion, seccionId) => (sesionFinalizada ? null : (
+    <>
+      {deLaSeccion.length > 1 && !opcionesOcultas.includes('mover') && (
+        <OpcionesNavegacion
+          orientacion="vertical"
+          onAnterior={() => mover(seccionId, deLaSeccion, indice, -1)}
+          onSiguiente={() => mover(seccionId, deLaSeccion, indice, 1)}
+          anteriorDeshabilitado={moviendo || indice === 0}
+          siguienteDeshabilitado={moviendo || indice === deLaSeccion.length - 1}
+          etiquetaAnterior="Subir punto"
+          etiquetaSiguiente="Bajar punto"
+        />
+      )}
+      <OpcionesAUD punto={punto} ocultar={opcionesOcultas}>
+        {opcionesExtra && opcionesExtra(punto)}
+      </OpcionesAUD>
+    </>
+  ));
 
   if (vistaCompletaProyecto) {
     return (
@@ -71,7 +133,7 @@ export default function ListaPuntosProyecto() {
         {SECCIONES_DOCUMENTO.map((s) => (
           <div key={s.id} className="widget-lista-puntos-grupo">
             <div className="widget-lista-puntos-separador">{s.nombre}</div>
-            {listaDeSeccion(puntos, s, REMITENTES, estadoCarga)}
+            {listaDeSeccion(puntos, s, REMITENTES, estadoCarga, renderOpciones, descargar)}
           </div>
         ))}
       </div>
@@ -84,7 +146,7 @@ export default function ListaPuntosProyecto() {
   return (
     <div className="widget-lista-puntos-proyecto">
       {avisoError}
-      {seccion ? listaDeSeccion(puntos, seccion, REMITENTES, estadoCarga) : (
+      {seccion ? listaDeSeccion(puntos, seccion, REMITENTES, estadoCarga, renderOpciones, descargar) : (
         estadoCarga === 'listo' && <div className="widget-lista-puntos-vacio">Sin secciones definidas.</div>
       )}
       {!seccion && estadoCarga === 'cargando' && <div className="widget-lista-puntos-vacio">Cargando…</div>}

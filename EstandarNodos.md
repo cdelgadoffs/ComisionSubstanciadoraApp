@@ -27,7 +27,7 @@ Dos objetivos guían todo lo demás:
 
 ## 2. La regla mecánica: `base` vs `widget`
 
-**Un archivo es `base` solo si lo único que importa es: (1) su propio CSS, (2) React (hooks nativos como `useState`, `useEffect`, `useRef`) y (3) hooks propios puros de `hooks/`. Si importa cualquier otra cosa — otro componente, un hook de contexto, `utils/`, `services/` — es `widget`.**
+**Un archivo es `base` solo si lo único que importa es: (1) su propio CSS, (2) React (hooks nativos como `useState`, `useEffect`, `useRef`, y `react-dom` para portales) y (3) hooks propios puros de `hooks/`. Si importa cualquier otra cosa — otro componente, un hook de contexto, `utils/`, `services/` — es `widget`.**
 
 - No se pondera ni se acumula: con que dispare una condición de widget, es widget.
 - Hooks nativos de React para estado puramente local de UI **no** cuentan.
@@ -43,6 +43,7 @@ Dos objetivos guían todo lo demás:
 - Cada componente tiene **su propio CSS** (`styles/base/`) que él mismo importa. No hay CSS compartido cargado globalmente: cada uno es autosuficiente. Duplicar unas líneas entre componentes parecidos es preferible a una dependencia cruzada.
 - Un ícono/símbolo se vuelve **intrínseco** (escrito dentro del componente) cuando ese componente tiene un único uso con un único significado en todo el proyecto.
 - **"Cada mesa su propio mantel":** un `base` se define una vez, pero cada page monta **su propia instancia**; nunca una compartida entre pages. Si una page no monta un componente, solo se ve el fondo — comportamiento correcto, no un bug a parchear.
+- Los **overlays** (modales, menús flotantes) se montan con un portal a `document.body` y un `z-index` propio por encima de los demás niveles, para no depender de los contenedores que los alojan. Cierran con su ✕ intrínseco, con Esc y con clic fuera.
 - Una capacidad nueva se agrega a un `base` **solo si es genuinamente reutilizable**, nunca para resolver la necesidad puntual de un solo lugar, y siempre **opt-in vía prop**, sin cambiar el comportamiento por defecto de los consumidores existentes.
 
 ## 4. `components/widgets/`
@@ -50,6 +51,10 @@ Dos objetivos guían todo lo demás:
 - Combina piezas de `base` y/o llama a hooks de contexto directamente — nunca recibe esos datos por props desde una page.
 - No es obligatorio que use átomos de `base`: llamar contexto directamente ya lo hace widget.
 - Si necesita iterar sub-ítems (un menú con N opciones), **la iteración vive en el mismo widget**, sin envolver cada ítem en su propio widget.
+- **Dos sabores de widget, sin clasificación aparte** (ambos viven en `components/widgets/` y cumplen la misma regla mecánica; es un criterio de diseño, no una capa):
+  - **Conectado:** llama a los hooks de contexto y contiene la lógica de su tarea concreta. Se elige cuando hace siempre lo mismo, con un único significado. Ej.: una barra superior que abre un panel y cierra sesión, o un formulario que añade un registro.
+  - **Compuesto por props:** solo combina piezas de `base`, no toca contexto y recibe los manejadores desde fuera. Se elige cuando se reutiliza para comportamientos distintos. Ej.: un submenú que recibe `onSeleccionar` y `onAgregar`. Un widget reutilizable **nunca** cambia su comportamiento según la page o la vista en la que está (no lee `vistaActual` para ramificar): cada consumidor le pasa lo que debe hacer y la lógica vive en el widget consumidor.
+- **Anfitrión / huésped:** quien aloja a otro componente (widget o page) controla **cuándo, dónde y cómo se ve**: visibilidad, hover, posición, qué botones se ocultan o se añaden (vía props/slots) y las reglas CSS que dependen del anfitrión (ej. `.anfitrion:hover .huesped { … }` va en el CSS del anfitrión, nunca en el del huésped; ej.: el CSS de un submenú que revela el botón "+" de su ítem al pasar el cursor). El huésped ejecuta su función propia y **no conoce a su anfitrión**. Un huésped conectado recibe del anfitrión solo **sobre qué actuar** (el dato) y cómo mostrarse, jamás la lógica de negocio; un huésped compuesto recibe los manejadores.
 - **La estructura de la interfaz** (tablas de menú, textos, íconos) vive en el widget que la pinta, nunca en el context ni en el API.
 - Cuando dos partes de un widget aparecen en regiones distintas del layout y son instancias separadas, el estado que las coordina **se levanta a `UIContext`**.
 - Un widget puede controlar directamente una relación de comportamiento con un `base` si es intrínseca a él (sin pasar por la page).
@@ -127,7 +132,7 @@ context/ (puente)  ──▶  services/api.js  ──▶  LocalAPI/          (pr
 Cada dato que el context entrega lleva `sincronizacion`: `'servidor' | 'local' | 'error'`. Lo pone el cliente (context/cola), no el API. Un átomo `base` lo pinta (ícono + tooltip intrínsecos).
 
 ### Borradores
-Un widget con formulario guarda su borrador **vía el context** (`guardarBorrador`/`obtenerBorrador`/`eliminarBorrador`), nunca llamando al almacenamiento directo. Clave por contexto de uso; guardado con debounce, restaurado al abrir y eliminado cuando el formulario queda vacío. No se guarda nada hasta que termina la restauración, para no pisar el borrador existente.
+Un widget con formulario guarda su borrador **vía el context** (`guardarBorrador`/`obtenerBorrador`/`eliminarBorrador`), nunca llamando al almacenamiento directo. Clave por contexto de uso; guardado con debounce, restaurado al abrir y eliminado cuando el formulario queda vacío. No se guarda nada hasta que termina la restauración, para no pisar el borrador existente. **Los borradores guardan solo texto y banderas, nunca binarios** (archivos adjuntos): duplicar archivos grandes en el almacenamiento del cliente en cada guardado sería inviable.
 
 ## 10. `App.jsx`
 
