@@ -4,13 +4,13 @@ import Sidebar1 from '../components/base/Sidebar1.jsx';
 import Sidebar3 from '../components/base/Sidebar3.jsx';
 import Sidebar5 from '../components/base/Sidebar5.jsx';
 import PanelPrincipal from '../components/base/PanelPrincipal.jsx';
-import BotonIcono from '../components/base/BotonIcono.jsx';
 import MenuPrincipalSesion from '../components/widgets/MenuPrincipalSesion.jsx';
 import FormularioPunto from '../components/widgets/FormularioPunto.jsx';
 import ListaPuntosProyecto from '../components/widgets/ListaPuntosProyecto.jsx';
 import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
 import { useUI, ANCHO_SIDEBAR3, ALTO_TOPBAR, ALTO_CINTA } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
+import { useAjustesVisuales } from '../context/AjustesVisualesContext.jsx';
 import { encabezadoSesion } from '../utils/sesiones.js';
 import '../styles/pages/ProyectoOrdenDia.css';
 
@@ -20,10 +20,10 @@ export default function ProyectoOrdenDia() {
     sidebar3Abierto, cerrarSidebar3, puntoEnEdicionId,
     sidebar5Abierto, cerrarSidebar5,
     sidebar5Ancho,
-    vistaCompletaProyecto, setVistaCompletaProyecto,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
   const { sesionSeleccionada } = useProyecto();
+  const { vistaCompletaProyecto, cambiarAjuste } = useAjustesVisuales();
   const sesionActual = encabezadoSesion(sesionSeleccionada);
   const panelIzquierda = izquierdaSidebar3 + (sidebar3Abierto ? ANCHO_SIDEBAR3 : 0);
   const arriba = ALTO_TOPBAR + ALTO_CINTA;
@@ -34,6 +34,12 @@ export default function ProyectoOrdenDia() {
       <Topbar
         terminoBusqueda={terminoBusqueda}
         onCambiarBusqueda={setTerminoBusqueda}
+        opcionesConfiguracion={[
+          vistaCompletaProyecto
+            ? { id: 'vista', label: 'Ver por sección', icono: 'ri-list-unordered' }
+            : { id: 'vista', label: 'Ver lista completa', icono: 'ri-stack-line' },
+        ]}
+        onSeleccionarConfiguracion={() => cambiarAjuste('vistaCompletaProyecto', !vistaCompletaProyecto)}
       />
       <CintaSesiones textoVacio="Aún no hay sesiones programadas." />
       <Sidebar1
@@ -41,13 +47,6 @@ export default function ProyectoOrdenDia() {
         arriba={arribaSidebar}
         titulo={sesionActual.titulo}
         subtitulo={sesionActual.subtitulo}
-        accionesHeader={
-          <BotonIcono
-            icono={vistaCompletaProyecto ? 'ri-stack-line' : 'ri-list-unordered'}
-            ariaLabel={vistaCompletaProyecto ? 'Ver por sección' : 'Ver lista completa'}
-            onClick={() => setVistaCompletaProyecto((v) => !v)}
-          />
-        }
       >
         <MenuPrincipalSesion />
       </Sidebar1>

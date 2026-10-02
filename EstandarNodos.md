@@ -9,6 +9,18 @@ Dos objetivos guían todo lo demás:
 
 ---
 
+## 0. Regla obligatoria: el estándar se respeta
+
+Todo lo que sigue es **obligatorio**. Si una petición exige romper una regla del estándar (una capa que importa lo que no debe, una excepción "solo por esta vez", un atajo que mezcla responsabilidades), **no se implementa tal cual**:
+
+1. Se señala la regla que se rompería y por qué.
+2. Se **buscan y proponen alternativas que sí la respeten**, con ventajas, costos y una recomendación.
+3. Se espera la decisión. Solo si se decide cambiar la regla misma, se modifica primero este documento y después el código; nunca se hace una excepción silenciosa ni "provisional".
+
+Un estándar con excepciones deja de ser verificable: la regla manda sobre la comodidad y la rapidez.
+
+---
+
 ## 1. Las capas
 
 | Capa | Qué es |
@@ -72,7 +84,7 @@ Dos objetivos guían todo lo demás:
 
 - Solo aquí vive el estado de negocio **en el cliente** (un espejo de lo que dice el API) y las acciones que lo mueven. **Las reglas de negocio no viven aquí.**
 - Expone datos y acciones — nunca lógica de presentación: ni tablas de menú, ni textos de interfaz, ni conteos para mostrar (se cuentan en el widget que los pinta).
-- Los contextos **de negocio** son los puentes hacia `services/`. `UIContext` **no** lo es: solo estado de interfaz (sidebars abiertos, vista activa, búsqueda…), jamás llama a `services/`.
+- Los contextos **de negocio** son los puentes hacia `services/`. `UIContext` **no** lo es: solo estado de interfaz (sidebars abiertos, vista activa, búsqueda…), jamás llama a `services/`. Las preferencias visuales persistentes (vista, tema…) van en su propio contexto-puente (`AjustesVisualesContext`) hacia `services/AjustesVisuales.js` (`localStorage`); así no hay excepciones a la regla.
 - Las acciones son **asíncronas**: llaman a `services/api.js`, esperan y actualizan el estado con **lo que el API devolvió**, nunca con lo que el cliente supone. Si pueden fallar, lanzan el error hacia el componente que las disparó (el widget decide cómo mostrarlo). El context lleva el estado de carga y de error **por recurso** (catálogos, sesiones, etc.), para que un fallo de uno no se borre al cargar otro, y expone `cargando` (alguno en curso) y `error` (el primer fallo activo, con su `mensaje`).
 - Nunca se llama a `services/` desde dentro de un updater de `setState` (efecto secundario en una función pura; se ejecuta doble en StrictMode).
 
@@ -119,6 +131,7 @@ context/ (puente)  ──▶  services/api.js  ──▶  LocalAPI/          (pr
 | `ApiError.js` | Forma única de error `{ codigo, mensaje }` que ambas implementaciones lanzan. | Sí |
 | `LocalAPI/` | Servidor simulado: `index.js` (operaciones), `reglas.js` (validaciones, estados, permisos, usuario simulado), datos iniciales de catálogos, `db.js` (su propia IndexedDB). | **No** — se borra la carpeta al conectar |
 | `ServerConnection/` | Cliente del backend real. Mismas firmas que `LocalAPI`. | Sí |
+| `AjustesVisuales.js` | `localStorage` del cliente: preferencias visuales del usuario (vista, tema…), un solo objeto JSON. Solo lo llama `AjustesVisualesContext`; con `try/catch` para tolerar almacenamiento bloqueado. Nunca datos de negocio. | Sí, siempre |
 | `SesionIndexedDB.js` | IndexedDB **del cliente**: `borradores`, `cache` y a futuro `cola` (escritura offline). **Nunca es fuente de verdad**: si discrepa del servidor, gana el servidor. | Sí, siempre |
 
 - **Dos bases distintas, dos roles:** la del cliente es del producto final; la de `LocalAPI` es el servidor de mentira. No se mezclan.

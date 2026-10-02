@@ -4,15 +4,18 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { ProyectoProvider } from './context/ProyectoContext.jsx'
+import { AjustesVisualesProvider } from './context/AjustesVisualesContext.jsx'
 import { UIProvider } from './context/UIContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <ProyectoProvider>
-        <UIProvider>
-          <App />
-        </UIProvider>
+        <AjustesVisualesProvider>
+          <UIProvider>
+            <App />
+          </UIProvider>
+        </AjustesVisualesProvider>
       </ProyectoProvider>
     </AuthProvider>
   </StrictMode>,

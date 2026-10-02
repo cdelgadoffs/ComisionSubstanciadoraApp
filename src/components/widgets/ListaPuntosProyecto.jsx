@@ -6,6 +6,7 @@ import OpcionesAUD from './OpcionesAUD.jsx';
 import OpcionesNavegacion from './OpcionesNavegacion.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
 import { useUI } from '../../context/UIContext.jsx';
+import { useAjustesVisuales } from '../../context/AjustesVisualesContext.jsx';
 import { estiloArchivo, guardarEnDisco } from '../../utils/archivos.js';
 import '../../styles/widgets/ListaPuntosProyecto.css';
 
@@ -91,7 +92,8 @@ export default function ListaPuntosProyecto({ opcionesOcultas = [], opcionesExtr
   const [errorAccion, setErrorAccion] = useState(null);
   const [moviendo, setMoviendo] = useState(false);
   const [seleccionadoId, setSeleccionadoId] = useState(null);
-  const { seccionActivaProyecto, setSeccionActivaProyecto, vistaCompletaProyecto } = useUI();
+  const { seccionActivaProyecto, setSeccionActivaProyecto } = useUI();
+  const { vistaCompletaProyecto } = useAjustesVisuales();
   const seleccionar = (id, seccionId) => {
     setSeccionActivaProyecto(seccionId);
     setSeleccionadoId(id);
