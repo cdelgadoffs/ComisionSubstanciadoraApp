@@ -3,35 +3,7 @@
   border-left: 2px solid #cecdcd;
   margin: 2px 0 6px 16px;
 }
-.widget-submenu-dd-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  cursor: pointer;
-  font-size: 13px;
-  position: relative;
-  border-left: 2px solid transparent;
-}
-.widget-submenu-dd-item:hover {
-  background: #f2f2f2;
-}
-.widget-submenu-dd-item-activo {
-  background: #e8e8e8;
-  font-weight: 600;
-  border-left-color: #1a1a1a;
-}
-.widget-submenu-dd-badge {
-  background: #e0e0e0;
-  border-radius: 10px;
-  padding: 0 6px;
-  font-size: 10px;
-  color: #666;
-  font-weight: 500;
-  margin-left: auto;
-  line-height: 1.6;
-}
-.widget-submenu-dd-item:hover .base-boton-agregar {
+.widget-submenu-dd .base-boton-seleccionable-menu:hover .base-boton-agregar {
   width: 18px;
   margin-left: 4px;
   opacity: 1;

@@ -1,3 +1,4 @@
+import BotonSeleccionableMenu from '../base/BotonSeleccionableMenu.jsx';
 import BotonAgregar from '../base/BotonAgregar.jsx';
 import '../../styles/widgets/SubMenuDD.css';
 
@@ -5,17 +6,18 @@ export default function SubMenuDD({ items, activoId, onSeleccionar, onAgregar, i
   return (
     <div className="widget-submenu-dd">
       {items.map((item) => (
-        <div
+        <BotonSeleccionableMenu
           key={item.id}
-          className={'widget-submenu-dd-item' + (item.id === activoId ? ' widget-submenu-dd-item-activo' : '')}
-          onClick={() => onSeleccionar && onSeleccionar(item.id)}
-        >
-          <span className="widget-submenu-dd-nombre">{item.nombre}</span>
-          <span className="widget-submenu-dd-badge">{item.badge}</span>
-          {onAgregar && (
+          variante="submenu"
+          activo={item.id === activoId}
+          badge={item.badge}
+          accion={onAgregar && (
             <BotonAgregar onClick={() => onAgregar(item.id)}>{iconoAgregar}</BotonAgregar>
           )}
-        </div>
+          onClick={() => onSeleccionar && onSeleccionar(item.id)}
+        >
+          {item.nombre}
+        </BotonSeleccionableMenu>
       ))}
       {subtitulo && <div className="widget-submenu-dd-subtitulo">{subtitulo}</div>}
     </div>

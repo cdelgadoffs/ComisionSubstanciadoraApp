@@ -24,7 +24,6 @@ export function UIProvider({ children }) {
   const [vistaCompletaProyecto, setVistaCompletaProyecto] = useState(false);
 
   const izquierdaSidebar1 = 0;
-  const izquierdaSidebar2 = izquierdaSidebar1 + ANCHO_SIDEBAR1;
   const izquierdaSidebar3 = izquierdaSidebar1 + ANCHO_SIDEBAR1;
 
   function toggleSidebar5() {
@@ -58,7 +57,7 @@ export function UIProvider({ children }) {
     puntoEnEdicionId, setPuntoEnEdicionId, abrirEdicionPunto,
     seccionActivaProyecto, setSeccionActivaProyecto,
     vistaCompletaProyecto, setVistaCompletaProyecto,
-    izquierdaSidebar1, izquierdaSidebar2, izquierdaSidebar3,
+    izquierdaSidebar1, izquierdaSidebar3,
   };
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

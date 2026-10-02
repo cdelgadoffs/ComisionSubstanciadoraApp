@@ -13,6 +13,8 @@ export const crearPunto = () => noImplementado();
 export const editarPunto = () => noImplementado();
 export const eliminarPunto = () => noImplementado();
 export const reordenarPuntos = () => noImplementado();
+export const marcarPunto = () => noImplementado();
+export const marcarPuntos = () => noImplementado();
 export const adjuntarArchivos = () => noImplementado();
 export const eliminarArchivo = () => noImplementado();
 export const descargarArchivo = () => noImplementado();

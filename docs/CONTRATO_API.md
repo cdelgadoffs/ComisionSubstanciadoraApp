@@ -39,6 +39,7 @@ Reglas de `estado` (con la fecha de hoy del servidor, entre sesiones ordenadas p
 | `confidencial` | bool | |
 | `archivos` | `Archivo[]` | Metadatos de los archivos adjuntos (ver "Archivo"). |
 | `orden` | int | Posición dentro de su (sesión, sección), 1…n (ver "Orden"). |
+| `tratado` | bool | Marca de la celebración: el punto ya se trató. Empieza en `false`; los puntos anteriores al campo se leen como `false`. Solo cambia con `marcarPunto`. |
 | `version` | int | |
 | `creadoPor`, `creadoEn`, `modificadoEn` | string | Autoría y fechas, del servidor. |
 
@@ -89,15 +90,20 @@ Lo que **no** es catálogo y vive solo en el cliente: la estructura de la interf
 | `editarPunto(id, version, cambios)` | id, `version` que el cliente tiene, campos a cambiar | `Punto` actualizado | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA`, `CONFLICTO`, `VALIDACION` |
 | `eliminarPunto(id)` | id | — | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA` |
 
-### Operaciones de archivos y de orden
+### Operaciones de archivos, de orden y de celebración
 
 | Operación | Entrada | Salida | Errores |
 |---|---|---|---|
+| `marcarPunto(id, tratado)` | id de punto + bool | `Punto` actualizado | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA`, `VALIDACION` |
+| `marcarPuntos(sesionId, tratado)` | id de sesión + bool | `Punto[]` de la sesión (ordenados, ya filtrados según el usuario) | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA`, `VALIDACION` |
 | `adjuntarArchivos(puntoId, archivos)` | id de punto + archivos (binarios) | `Punto` actualizado (`version` + 1) | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA`, `ARCHIVO_INVALIDO` |
 | `eliminarArchivo(puntoId, archivoId)` | ids | `Punto` actualizado | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA` |
 | `descargarArchivo(archivoId)` | id | `{ nombre, tipo, blob }` (en el servidor real, una URL firmada) | `NO_AUTORIZADO`, `NO_ENCONTRADO` |
 | `reordenarPuntos(sesionId, seccion, ids)` | sesión, sección e **ids de la sección en el orden deseado** | `Punto[]` de esa sección, ya ordenados | `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA`, `CONFLICTO`, `VALIDACION` |
 
+- `marcarPunto(id, tratado)` fija `tratado` (bool) del punto y devuelve el `Punto` actualizado. Es **idempotente** (repetir el mismo valor no cambia nada ni sube `version`) y no exige `version`: solo guarda un valor, no hay edición concurrente que proteger. Errores: `NO_AUTORIZADO`, `NO_ENCONTRADO`, `SESION_CELEBRADA`, `VALIDACION` (si `tratado` no es booleano). Solo cuando cambia el valor se incrementa `version` y se actualiza `modificadoEn`.
+- `marcarPuntos` fija `tratado` en **todos** los puntos de la sesión que el usuario puede ver, en una sola operación **atómica** (o se aplican todos o ninguno). Es idempotente: solo cambian de `version` y `modificadoEn` los puntos cuyo valor cambió.
+- `editarPunto` **no** modifica `tratado`.
 - `crearPunto` acepta `archivos` (binarios) opcionales y los valida con las mismas reglas de `adjuntarArchivos`. El formato antiguo `[{ nombre }]` se rechaza con `ARCHIVO_INVALIDO`.
 - Las operaciones que tocan el punto y sus binarios (crear con archivos, adjuntar, quitar, y la cascada al eliminar el punto) son **atómicas**: o se aplican todas o ninguna.
 - `editarPunto` **no** modifica `archivos` ni `orden`: para eso están `adjuntarArchivos`, `eliminarArchivo` y `reordenarPuntos`.

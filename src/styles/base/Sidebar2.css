@@ -34,6 +34,11 @@
   justify-content: space-between;
   gap: 8px;
 }
+.base-sidebar2-header-acciones {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .base-sidebar2-badge {
   font-family: 'DM Mono', monospace;
   font-size: 10px;

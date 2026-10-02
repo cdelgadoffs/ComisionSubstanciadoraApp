@@ -1,0 +1,38 @@
+.widget-lista-puntos-sesion {
+  flex: 1;
+  min-height: 0;
+}
+.widget-lista-puntos-sesion-contenido {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+.widget-lista-puntos-sesion-accion {
+  display: inline-flex;
+  margin-left: auto;
+}
+.widget-lista-puntos-sesion-vacio {
+  color: #aaa;
+  font-size: 13px;
+  font-style: italic;
+  padding: 4px 16px;
+}
+.widget-lista-puntos-sesion-error {
+  background: #fdecea;
+  color: #c62828;
+  border: 1px solid #f5c2c0;
+  border-radius: 6px;
+  margin: 0 12px 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu {
+  font-size: 13.5px;
+  border-left-width: 3px;
+}
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu-punto {
+  display: none;
+}
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu-completado {
+  font-weight: 700;
+}

@@ -12,6 +12,8 @@ export const {
   editarPunto,
   eliminarPunto,
   reordenarPuntos,
+  marcarPunto,
+  marcarPuntos,
   adjuntarArchivos,
   eliminarArchivo,
   descargarArchivo,

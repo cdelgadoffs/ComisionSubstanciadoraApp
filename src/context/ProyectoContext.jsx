@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import {
   listarCatalogos, listarSesiones, crearSesiones, celebrarSesion,
-  listarPuntos, crearPunto, reordenarPuntos as reordenarPuntosEnApi,
+  listarPuntos, crearPunto, reordenarPuntos as reordenarPuntosEnApi, marcarPunto as marcarPuntoEnApi, marcarPuntos as marcarPuntosEnApi,
   editarPunto as editarPuntoEnApi, eliminarPunto as eliminarPuntoEnApi,
   adjuntarArchivos as adjuntarArchivosEnApi, eliminarArchivo as eliminarArchivoEnApi,
   descargarArchivo as descargarArchivoEnApi,
@@ -150,6 +150,13 @@ export function ProyectoProvider({ children }) {
       throw e;
     }
   }
+  async function marcarPunto(id, tratado) {
+    const editado = conSync(await marcarPuntoEnApi(id, tratado));
+    aplicarPuntos(puntos.map((p) => (p.id === id ? editado : p)));
+  }
+  async function marcarTodosPuntos(tratado) {
+    aplicarPuntos((await marcarPuntosEnApi(sesionActivaFecha, tratado)).map(conSync));
+  }
   async function adjuntarArchivos(puntoId, archivos) {
     const editado = conSync(await adjuntarArchivosEnApi(puntoId, archivos));
     aplicarPuntos(puntos.map((p) => (p.id === puntoId ? editado : p)));
@@ -175,7 +182,7 @@ export function ProyectoProvider({ children }) {
     sesionActivaFecha, cargarSesion,
     sesionFinalizada, finalizarSesion,
     PUNTOS: puntos, agregarPunto, editarPunto, eliminarPunto, reordenarPuntos,
-    adjuntarArchivos, eliminarArchivo, descargarArchivo,
+    marcarPunto, marcarTodosPuntos, adjuntarArchivos, eliminarArchivo, descargarArchivo,
     agregarSesiones,
     guardarBorrador, obtenerBorrador, eliminarBorrador,
     cargando, error,

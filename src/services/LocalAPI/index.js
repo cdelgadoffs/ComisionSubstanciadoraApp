@@ -90,6 +90,7 @@ export async function crearPunto(sesionId, datos) {
     ...normalizarPunto(datos, catalogos),
     archivos: metadatos,
     orden,
+    tratado: false,
     version: 1,
     creadoPor: usuarioActual().id,
     creadoEn: ahora,
@@ -125,6 +126,35 @@ export async function editarPunto(id, version, cambios) {
   };
   await guardar(STORE_PUNTOS, punto);
   return punto;
+}
+
+export async function marcarPunto(id, tratado) {
+  exigirEscritura();
+  if (typeof tratado !== 'boolean') throw new ApiError('VALIDACION', 'El valor de "tratado" debe ser verdadero o falso.');
+  const actual = await obtener(STORE_PUNTOS, id);
+  if (!actual) throw new ApiError('NO_ENCONTRADO', 'El punto no existe.');
+  await exigirSesionAbierta(actual.sesionId);
+  if (!!actual.tratado === tratado) return { ...actual, tratado };
+  const punto = { ...actual, tratado, version: actual.version + 1, modificadoEn: new Date().toISOString() };
+  await guardar(STORE_PUNTOS, punto);
+  return punto;
+}
+
+export async function marcarPuntos(sesionId, tratado) {
+  exigirEscritura();
+  if (typeof tratado !== 'boolean') throw new ApiError('VALIDACION', 'El valor de "tratado" debe ser verdadero o falso.');
+  await exigirSesionAbierta(sesionId);
+  const verConfidencial = puedeVerConfidencial();
+  const visibles = (await obtenerTodos(STORE_PUNTOS))
+    .filter((p) => p.sesionId === sesionId && (verConfidencial || !p.confidencial));
+  const ahora = new Date().toISOString();
+  const cambiados = visibles
+    .filter((p) => !!p.tratado !== tratado)
+    .map((p) => ({ ...p, tratado, version: p.version + 1, modificadoEn: ahora }));
+  await escribirVarios({ poner: cambiados.map((valor) => ({ store: STORE_PUNTOS, valor })) });
+  return visibles
+    .map((p) => cambiados.find((c) => c.id === p.id) ?? { ...p, tratado: !!p.tratado })
+    .sort(porOrden);
 }
 
 export async function eliminarPunto(id) {
