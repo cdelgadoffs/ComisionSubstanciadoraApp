@@ -9,7 +9,6 @@ export const ALTO_CINTA = 50;
 const UIContext = createContext(null);
 
 export function UIProvider({ children }) {
-  const [sidebar2Abierto, setSidebar2Abierto] = useState(true);
   const [sidebar3Abierto, setSidebar3Abierto] = useState(false);
   const [sidebar4Abierto, setSidebar4Abierto] = useState(false);
   const [sidebar5Abierto, setSidebar5Abierto] = useState(false);
@@ -37,7 +36,6 @@ export function UIProvider({ children }) {
   }
 
   const value = {
-    sidebar2Abierto, setSidebar2Abierto,
     sidebar3Abierto, setSidebar3Abierto,
     sidebar4Abierto, setSidebar4Abierto,
     sidebar5Abierto, toggleSidebar5, cerrarSidebar5,

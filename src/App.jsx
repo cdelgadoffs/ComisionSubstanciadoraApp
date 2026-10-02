@@ -2,15 +2,15 @@ import Skeleton from './components/Skeleton.jsx';
 import Sidebar4 from './components/base/Sidebar4.jsx';
 import Inicio from './pages/Inicio.jsx';
 import ProyectoOrdenDia from './pages/ProyectoOrdenDia.jsx';
-import SesionPrevia from './pages/SesionPrevia.jsx';
+import Sesion from './pages/Sesion.jsx';
 import Historial from './pages/Historial.jsx';
 import { useUI } from './context/UIContext.jsx';
 
 const PAGES = {
   inicio: Inicio,
   proyecto: ProyectoOrdenDia,
-  sesionPrevia: SesionPrevia,
-  actaSesion: Historial,
+  sesion: Sesion,
+  historial: Historial,
 };
 
 function App() {

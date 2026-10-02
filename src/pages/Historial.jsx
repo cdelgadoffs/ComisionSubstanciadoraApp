@@ -1,25 +1,22 @@
 import Topbar from '../components/widgets/Topbar.jsx';
 import Sidebar1 from '../components/base/Sidebar1.jsx';
-import Sidebar2 from '../components/base/Sidebar2.jsx';
 import Sidebar5 from '../components/base/Sidebar5.jsx';
 import PanelPrincipal from '../components/base/PanelPrincipal.jsx';
 import MenuPrincipalSesion from '../components/widgets/MenuPrincipalSesion.jsx';
 import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
-import { useUI, ANCHO_SIDEBAR2 } from '../context/UIContext.jsx';
+import { useUI } from '../context/UIContext.jsx';
 import { useProyecto } from '../context/ProyectoContext.jsx';
 import '../styles/pages/Historial.css';
 
 export default function Historial() {
   const {
-    izquierdaSidebar1, izquierdaSidebar2,
-    sidebar2Abierto, setSidebar2Abierto,
+    izquierdaSidebar1, izquierdaSidebar3,
     sidebar5Abierto, cerrarSidebar5,
     sidebar5Ancho,
     terminoBusqueda, setTerminoBusqueda,
   } = useUI();
-  const { sesionActual, sesionEnCurso } = useProyecto();
-  const panelIzquierda = izquierdaSidebar2
-    + (sidebar2Abierto ? ANCHO_SIDEBAR2 : 0);
+  const { sesionActual } = useProyecto();
+  const panelIzquierda = izquierdaSidebar3;
 
   return (
     <>
@@ -34,13 +31,6 @@ export default function Historial() {
       >
         <MenuPrincipalSesion />
       </Sidebar1>
-      <Sidebar2
-        abierto={sidebar2Abierto}
-        izquierda={izquierdaSidebar2}
-        badge={sesionEnCurso.badge}
-        subtitulo={sesionEnCurso.subtitulo}
-        onCerrar={() => setSidebar2Abierto(false)}
-      />
       <Sidebar5
         abierto={sidebar5Abierto}
         ancho={sidebar5Ancho}

@@ -6,8 +6,8 @@ import { useUI } from '../../context/UIContext.jsx';
 const VISTAS_MENU_PRINCIPAL = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'proyecto', label: 'Proyecto del orden del día', expandible: true, mostrarTotalPuntos: true },
-  { id: 'sesionPrevia', label: 'Celebrar sesión', labelFinalizada: 'Sesión celebrada' },
-  { id: 'actaSesion', label: 'Historial' },
+  { id: 'sesion', label: 'Celebrar sesión', labelFinalizada: 'Sesión celebrada' },
+  { id: 'historial', label: 'Historial' },
 ];
 
 export default function MenuPrincipalSesion() {

@@ -15,11 +15,6 @@ const cachePuntos = (sesionId) => `puntos:${sesionId}`;
 const conEtiqueta = (sesiones) => sesiones.map((s) => ({ ...s, label: etiquetaFecha(s.id) }));
 const conSync = (punto) => ({ ...punto, sincronizacion: 'servidor' });
 
-const sesionEnCurso = {
-  badge: 'Sesión en curso',
-  subtitulo: '0 puntos',
-};
-
 const nuevoPunto = {
   badge: 'Nuevo punto',
 };
@@ -140,7 +135,7 @@ export function ProyectoProvider({ children }) {
   const sesionFinalizada = !!sesionSeleccionada?.celebrada;
 
   const value = {
-    sesionActual, sesionEnCurso, nuevoPunto,
+    sesionActual, nuevoPunto,
     SECCIONES_DOCUMENTO: catalogos.secciones, REMITENTES: catalogos.remitentes,
     FECHAS_SESIONES: fechasSesiones,
     sesionActivaFecha, cargarSesion,
