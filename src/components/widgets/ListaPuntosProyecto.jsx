@@ -9,51 +9,62 @@ import { useUI } from '../../context/UIContext.jsx';
 import { estiloArchivo, guardarEnDisco } from '../../utils/archivos.js';
 import '../../styles/widgets/ListaPuntosProyecto.css';
 
-function TarjetaPunto({ punto, titulo, requiereAcuerdo, nombreRemitente, opciones, onDescargar }) {
+function seleccionarSiNoEsControl(e, seleccionar) {
+  if (e.target.closest('button, a, input, label')) return;
+  seleccionar();
+}
+
+function TarjetaPunto({ punto, titulo, requiereAcuerdo, nombreRemitente, opciones, onDescargar, seleccionada, onSeleccionar }) {
   const esInforme = !requiereAcuerdo;
   return (
-    <Card>
-      <div className="widget-lista-puntos-header">
-        <span className={'widget-lista-puntos-titulo' + (punto.confidencial ? ' widget-lista-puntos-titulo-confidencial' : '')}>
-          {titulo}
-        </span>
-        <div className="widget-lista-puntos-header-derecha">
-          {opciones}
-          <IndicadorSync estado={punto.sincronizacion} />
-          <span className="widget-lista-puntos-dependencia">{nombreRemitente}</span>
+    <div className={'widget-lista-puntos-item' + (seleccionada ? ' widget-lista-puntos-item-seleccionado' : '')}>
+      <Card onClick={(e) => seleccionarSiNoEsControl(e, onSeleccionar)}>
+        <div className="widget-lista-puntos-header">
+          <span className={'widget-lista-puntos-titulo' + (punto.confidencial ? ' widget-lista-puntos-titulo-confidencial' : '')}>
+            {titulo}
+          </span>
+          <div className="widget-lista-puntos-header-derecha">
+            <IndicadorSync estado={punto.sincronizacion} />
+            <span className="widget-lista-puntos-dependencia">{nombreRemitente}</span>
+            {opciones && (
+              <div className="widget-lista-puntos-opciones">
+                <div className="widget-lista-puntos-opciones-interior">{opciones}</div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-      <div className="widget-lista-puntos-fila">
-        <span className="widget-lista-puntos-label">{esInforme ? 'Informe' : 'Punto de acuerdo'}</span>
-        <div className="widget-lista-puntos-contenido">{punto.contenido || 'Sin contenido'}</div>
-      </div>
-      {!esInforme && (
         <div className="widget-lista-puntos-fila">
-          <span className="widget-lista-puntos-label">Acuerdo</span>
-          <div className="widget-lista-puntos-acuerdo">{punto.acuerdo || 'Sin acuerdo'}</div>
+          <span className="widget-lista-puntos-label">{esInforme ? 'Informe' : 'Punto de acuerdo'}</span>
+          <div className="widget-lista-puntos-contenido">{punto.contenido || 'Sin contenido'}</div>
         </div>
-      )}
-      {punto.archivos.length > 0 && (
-        <div className="widget-lista-puntos-archivos">
-          {punto.archivos.map((a, i) => {
-            const { icono, tono } = estiloArchivo(a.nombre);
-            return (
-              <BadgeDinamico
-                key={a.id ?? i}
-                texto={a.nombre}
-                icono={icono}
-                tono={tono}
-                onClick={a.id ? () => onDescargar(a) : undefined}
-              />
-            );
-          })}
-        </div>
-      )}
-    </Card>
+        {!esInforme && (
+          <div className="widget-lista-puntos-fila">
+            <span className="widget-lista-puntos-label">Acuerdo</span>
+            <div className="widget-lista-puntos-acuerdo">{punto.acuerdo || 'Sin acuerdo'}</div>
+          </div>
+        )}
+        {punto.archivos.length > 0 && (
+          <div className="widget-lista-puntos-archivos">
+            {punto.archivos.map((a, i) => {
+              const { icono, tono } = estiloArchivo(a.nombre);
+              return (
+                <BadgeDinamico
+                  key={a.id ?? i}
+                  texto={a.nombre}
+                  icono={icono}
+                  tono={tono}
+                  onClick={a.id ? () => onDescargar(a) : undefined}
+                />
+              );
+            })}
+          </div>
+        )}
+      </Card>
+    </div>
   );
 }
 
-function listaDeSeccion(puntos, seccion, remitentes, estadoCarga, renderOpciones, onDescargar) {
+function listaDeSeccion(puntos, seccion, remitentes, estadoCarga, renderOpciones, onDescargar, seleccionadoId, seleccionar) {
   const deLaSeccion = puntos.filter((p) => p.seccion === seccion.id);
   if (deLaSeccion.length === 0) {
     if (estadoCarga === 'error') return null;
@@ -69,6 +80,8 @@ function listaDeSeccion(puntos, seccion, remitentes, estadoCarga, renderOpciones
       nombreRemitente={remitentes.find((r) => r.id === p.remitente)?.nombre ?? p.remitente}
       opciones={renderOpciones(p, i, deLaSeccion, seccion.id)}
       onDescargar={onDescargar}
+      seleccionada={seleccionadoId === p.id}
+      onSeleccionar={() => seleccionar(p.id, seccion.id)}
     />
   ));
 }
@@ -77,7 +90,12 @@ export default function ListaPuntosProyecto({ opcionesOcultas = [], opcionesExtr
   const { PUNTOS: puntos, SECCIONES_DOCUMENTO, REMITENTES, sesionFinalizada, descargarArchivo, reordenarPuntos, cargando, error } = useProyecto();
   const [errorAccion, setErrorAccion] = useState(null);
   const [moviendo, setMoviendo] = useState(false);
-  const { seccionActivaProyecto, vistaCompletaProyecto } = useUI();
+  const [seleccionadoId, setSeleccionadoId] = useState(null);
+  const { seccionActivaProyecto, setSeccionActivaProyecto, vistaCompletaProyecto } = useUI();
+  const seleccionar = (id, seccionId) => {
+    setSeccionActivaProyecto(seccionId);
+    setSeleccionadoId(id);
+  };
   const estadoCarga = error ? 'error' : cargando ? 'cargando' : 'listo';
   const avisoError = (error || errorAccion) && (
     <div className="widget-lista-puntos-error">
@@ -133,7 +151,7 @@ export default function ListaPuntosProyecto({ opcionesOcultas = [], opcionesExtr
         {SECCIONES_DOCUMENTO.map((s) => (
           <div key={s.id} className="widget-lista-puntos-grupo">
             <div className="widget-lista-puntos-separador">{s.nombre}</div>
-            {listaDeSeccion(puntos, s, REMITENTES, estadoCarga, renderOpciones, descargar)}
+            {listaDeSeccion(puntos, s, REMITENTES, estadoCarga, renderOpciones, descargar, seleccionadoId, seleccionar)}
           </div>
         ))}
       </div>
@@ -146,7 +164,7 @@ export default function ListaPuntosProyecto({ opcionesOcultas = [], opcionesExtr
   return (
     <div className="widget-lista-puntos-proyecto">
       {avisoError}
-      {seccion ? listaDeSeccion(puntos, seccion, REMITENTES, estadoCarga, renderOpciones, descargar) : (
+      {seccion ? listaDeSeccion(puntos, seccion, REMITENTES, estadoCarga, renderOpciones, descargar, seleccionadoId, seleccionar) : (
         estadoCarga === 'listo' && <div className="widget-lista-puntos-vacio">Sin secciones definidas.</div>
       )}
       {!seccion && estadoCarga === 'cargando' && <div className="widget-lista-puntos-vacio">Cargando…</div>}

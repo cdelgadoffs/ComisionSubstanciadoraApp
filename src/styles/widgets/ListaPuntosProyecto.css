@@ -1,4 +1,5 @@
 .widget-lista-puntos-proyecto {
+  align-self: flex-start;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -12,13 +13,14 @@
   gap: 12px;
 }
 .widget-lista-puntos-separador {
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #999;
-  padding-top: 8px;
-  border-top: 1px solid #e0e0e0;
+  letter-spacing: 0.06em;
+  color: #555;
+  margin-top: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #c9c9ca;
 }
 .widget-lista-puntos-vacio {
   color: #aaa;
@@ -105,23 +107,44 @@
   background: #fafbfc;
 }
 
-.widget-lista-puntos-proyecto .base-card .widget-opciones-aud,
-.widget-lista-puntos-proyecto .base-card .widget-opciones-navegacion {
+.widget-lista-puntos-opciones {
+  display: grid;
+  grid-template-columns: 0fr;
+  margin-left: -10px;
   opacity: 0;
-  transition: opacity 0.15s;
+  pointer-events: none;
+  transition: grid-template-columns 0.2s ease, margin-left 0.2s ease, opacity 0.2s ease;
 }
-.widget-lista-puntos-proyecto .base-card:hover .widget-opciones-aud,
-.widget-lista-puntos-proyecto .base-card:hover .widget-opciones-navegacion,
-.widget-lista-puntos-proyecto .base-card:focus-within .widget-opciones-aud,
-.widget-lista-puntos-proyecto .base-card:focus-within .widget-opciones-navegacion {
+.widget-lista-puntos-opciones-interior {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+.widget-lista-puntos-proyecto .base-card:hover .widget-lista-puntos-opciones,
+.widget-lista-puntos-proyecto .base-card:focus-within .widget-lista-puntos-opciones {
+  grid-template-columns: 1fr;
+  margin-left: 0;
   opacity: 1;
+  pointer-events: auto;
 }
 @media (hover: none) {
-  .widget-lista-puntos-proyecto .base-card .widget-opciones-aud,
-  .widget-lista-puntos-proyecto .base-card .widget-opciones-navegacion {
+  .widget-lista-puntos-opciones {
+    grid-template-columns: 1fr;
+    margin-left: 0;
     opacity: 1;
+    pointer-events: auto;
   }
+}
+.widget-lista-puntos-proyecto .base-boton-icono[aria-label="Eliminar punto"]:hover:not(:disabled) {
+  background: #fdecea;
+  border-color: #f5c2c0;
+  color: #c62828;
 }
 .widget-lista-puntos-header .widget-opciones-navegacion {
   flex-direction: row;
+}
+.widget-lista-puntos-item-seleccionado .widget-lista-puntos-header {
+  background: #e3ecfd;
 }
