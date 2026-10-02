@@ -5,6 +5,7 @@ import Sidebar5 from '../components/base/Sidebar5.jsx';
 import PanelPrincipal from '../components/base/PanelPrincipal.jsx';
 import BotonMarcarTodos from '../components/widgets/BotonMarcarTodos.jsx';
 import ListaPuntosSesion from '../components/widgets/ListaPuntosSesion.jsx';
+import PuntoSesion from '../components/widgets/PuntoSesion.jsx';
 import MenuPrincipalSesion from '../components/widgets/MenuPrincipalSesion.jsx';
 import MenuPanelControl, { AccionesHeaderPanelControl } from '../components/widgets/MenuPanelControl.jsx';
 import { useUI, ANCHO_SIDEBAR2 } from '../context/UIContext.jsx';
@@ -56,7 +57,9 @@ export default function Sesion() {
       >
         <MenuPanelControl />
       </Sidebar5>
-      <PanelPrincipal izquierda={panelIzquierda} />
+      <PanelPrincipal izquierda={panelIzquierda}>
+        <PuntoSesion />
+      </PanelPrincipal>
     </>
   );
 }

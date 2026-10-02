@@ -28,11 +28,36 @@
 }
 .widget-lista-puntos-sesion .base-boton-seleccionable-menu {
   font-size: 13.5px;
-  border-left-width: 3px;
+  font-weight: 400;
+  border-left: 3px solid transparent;
+  background: #efefef;
+  color: #1a1a1a;
 }
-.widget-lista-puntos-sesion .base-boton-seleccionable-menu-punto {
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu:hover:not(.base-boton-seleccionable-menu-deshabilitado) {
+  background: #e6e6e6;
+  border-left-color: #1a1a1a;
+  color: #1a1a1a;
+}
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu.base-boton-seleccionable-menu-activo {
+  border-left-color: #1a1a1a;
+  background: #efefef;
+  color: #1a1a1a;
+  font-weight: 400;
+}
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu .base-boton-seleccionable-menu-punto {
   display: none;
 }
-.widget-lista-puntos-sesion .base-boton-seleccionable-menu-completado {
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu.base-boton-seleccionable-menu-completado,
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu.base-boton-seleccionable-menu-completado:hover:not(.base-boton-seleccionable-menu-deshabilitado) {
+  background: #e6f4ea;
+  border-left-color: transparent;
+  color: #2e7d32;
   font-weight: 700;
+}
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu.base-boton-seleccionable-menu-completado:hover:not(.base-boton-seleccionable-menu-deshabilitado) {
+  border-left-color: #2e7d32;
+}
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu.base-boton-seleccionable-menu-completado.base-boton-seleccionable-menu-activo,
+.widget-lista-puntos-sesion .base-boton-seleccionable-menu.base-boton-seleccionable-menu-completado.base-boton-seleccionable-menu-activo:hover:not(.base-boton-seleccionable-menu-deshabilitado) {
+  border-left-color: #2e7d32;
 }

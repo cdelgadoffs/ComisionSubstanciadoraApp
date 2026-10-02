@@ -21,6 +21,7 @@ export function UIProvider({ children }) {
   const [seccionNuevoPunto, setSeccionNuevoPunto] = useState(null);
   const [puntoEnEdicionId, setPuntoEnEdicionId] = useState(null);
   const [seccionActivaProyecto, setSeccionActivaProyecto] = useState(null);
+  const [puntoSesionSeleccionadoId, setPuntoSesionSeleccionadoId] = useState(null);
   const izquierdaSidebar1 = 0;
   const izquierdaSidebar3 = izquierdaSidebar1 + ANCHO_SIDEBAR1;
 
@@ -54,6 +55,7 @@ export function UIProvider({ children }) {
     seccionNuevoPunto, setSeccionNuevoPunto,
     puntoEnEdicionId, setPuntoEnEdicionId, abrirEdicionPunto,
     seccionActivaProyecto, setSeccionActivaProyecto,
+    puntoSesionSeleccionadoId, setPuntoSesionSeleccionadoId,
     izquierdaSidebar1, izquierdaSidebar3,
   };
 

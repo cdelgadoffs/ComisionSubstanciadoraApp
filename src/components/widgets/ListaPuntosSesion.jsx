@@ -3,14 +3,18 @@ import BotonSeleccionableMenu from '../base/BotonSeleccionableMenu.jsx';
 import Checkbox from '../base/Checkbox.jsx';
 import Scrollbar from '../base/Scrollbar.jsx';
 import { useProyecto } from '../../context/ProyectoContext.jsx';
+import { useUI } from '../../context/UIContext.jsx';
+import { puntosOrdenados, puntoActivo } from '../../utils/puntos.js';
 import '../../styles/widgets/ListaPuntosSesion.css';
 
 export default function ListaPuntosSesion() {
   const { PUNTOS, SECCIONES_DOCUMENTO, sesionFinalizada, marcarPunto, cargando, error } = useProyecto();
+  const { puntoSesionSeleccionadoId, setPuntoSesionSeleccionadoId } = useUI();
   const [errorAccion, setErrorAccion] = useState(null);
   const [guardandoId, setGuardandoId] = useState(null);
 
   async function marcar(id, tratado) {
+    setPuntoSesionSeleccionadoId(id);
     setErrorAccion(null);
     setGuardandoId(id);
     try {
@@ -22,9 +26,8 @@ export default function ListaPuntosSesion() {
     }
   }
 
-  const items = SECCIONES_DOCUMENTO.flatMap((s) =>
-    PUNTOS.filter((p) => p.seccion === s.id).map((p, i) => ({ punto: p, titulo: `${s.nombre} ${i + 1}` }))
-  );
+  const items = puntosOrdenados(PUNTOS, SECCIONES_DOCUMENTO);
+  const activoId = puntoActivo(items, puntoSesionSeleccionadoId)?.punto.id;
 
   const aviso = error ? `No se pudo cargar la información: ${error.mensaje}` : errorAccion;
   const vacio = items.length === 0
@@ -40,9 +43,11 @@ export default function ListaPuntosSesion() {
           {items.map(({ punto, titulo }) => (
             <BotonSeleccionableMenu
               key={punto.id}
+              activo={punto.id === activoId}
               completado={!!punto.tratado}
+              onClick={() => setPuntoSesionSeleccionadoId(punto.id)}
               accion={
-                <span className="widget-lista-puntos-sesion-accion">
+                <span className="widget-lista-puntos-sesion-accion" onClick={(e) => e.stopPropagation()}>
                   <Checkbox
                     checked={!!punto.tratado}
                     disabled={sesionFinalizada || guardandoId === punto.id}
