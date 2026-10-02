@@ -64,7 +64,7 @@ export default function MenuPrincipalSesion() {
                 items={seccionesConBadge}
                 activoId={seccionActivaProyecto}
                 onSeleccionar={seleccionarSeccion}
-                onAgregar={(seccionId) => { setSeccionNuevoPunto(seccionId); setSidebar3Abierto(true); }}
+                onAgregar={(seccionId) => { setSeccionActivaProyecto(seccionId); setSeccionNuevoPunto(seccionId); setSidebar3Abierto(true); }}
                 iconoAgregar="+"
               />
             )}

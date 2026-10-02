@@ -2,6 +2,8 @@
 
 Este documento es el estándar obligatorio de arquitectura para este proyecto. Cualquier trabajo futuro (en este chat o en uno nuevo) debe seguirlo al pie de la letra. Si una instrucción del usuario parece contradecirlo, pregunta antes de romperlo — el patrón se ha defendido activamente a lo largo de muchas sesiones y las excepciones son siempre deliberadas y documentadas, nunca accidentales.
 
+El estándar general, independiente de esta app, vive en `EstandarNodos.md`. Este documento es su aplicación a este proyecto, con precedentes concretos y el estado actual de cada flujo.
+
 Este proyecto usó antes un esquema de tres capas (`L1`/`L2`/`L3`, con metáfora de restaurante Michelín). Se reemplazó por el esquema de dos capas descrito abajo (`base`/`widgets`) por ser más directo y con una regla de pertenencia mecánica y verificable, en vez de depender de juicio caso por caso.
 
 ## Referencia visual: PlenoLOCAL
@@ -26,7 +28,7 @@ Al traer algo de PlenoLOCAL, nunca se copia tal cual su estructura de archivos n
 
 ## La regla mecánica: `base` vs `widgets`
 
-**Si un archivo importa algo más que su propio CSS, es `widget`. Si solo importa su propio CSS (y, como mucho, hooks nativos de React para estado de UI local: `useState`, `useEffect`, `useRef`), es `base`.**
+**Un archivo es `base` solo si lo único que importa es: (1) su propio CSS, (2) React (hooks nativos como `useState`, `useEffect`, `useRef`) y (3) hooks propios puros de `hooks/` (sin JSX, sin contexto, sin importar componentes). Si importa cualquier otra cosa — otro componente, un hook de contexto, `utils/`, `services/` — es `widget`.**
 
 Esto reemplaza cualquier juicio caso por caso. En concreto:
 
@@ -34,10 +36,11 @@ Esto reemplaza cualquier juicio caso por caso. En concreto:
 - Importar **un hook de contexto** (`useUI`, `useProyecto`, `useAuth`) → widget. Ej.: `BotonSalirSesion` llama `useAuth()` → widget, aunque solo envuelva un único `BotonS`.
 - Un componente puede disparar ambas condiciones a la vez (compone Y toca contexto) — sigue siendo widget de todas formas, la regla no se acumula ni se pondera, con que dispare una basta.
 - Hooks nativos de React (`useState`, `useEffect`, `useRef`) para estado puramente local de UI **no** cuentan — ej. `FechaDia` usa `useState`/`useEffect` para el reloj y sigue siendo `base`.
+- Los hooks propios **puros** de `hooks/` tampoco cuentan — ej. `Sidebar1`, `PanelPrincipal` y `Sidebar5` importan `useScrollbarPersonalizada` y siguen siendo `base`. Un hook de `hooks/` es puro solo si únicamente importa React: en cuanto importe un contexto o un componente deja de serlo, y quien lo use pasa a ser `widget`.
 
 ### `components/base/`
 - Recibe todo por props, incluyendo posicionamiento (`izquierda`, `arriba`, `ancho`, `abierto`) y slots genéricos (`children`, `accionesHeader` en `Sidebar5`, `botonCerrar` en `Sidebar2-5`) sin saber qué se le va a meter ahí.
-- **Nunca importa otro componente ni un hook de contexto** — eso es justo lo que lo mantiene `base` (ver regla mecánica).
+- **Nunca importa otro componente ni un hook de contexto** — eso es justo lo que lo mantiene `base` (ver regla mecánica). Lo único permitido fuera de su CSS es React y los hooks puros de `hooks/`.
 - Cada componente de `base` tiene su propio archivo CSS en `styles/base/`, que él mismo importa. No existen archivos CSS "compartidos" cargados globalmente desde `App.jsx` — cada uno es autosuficiente y se puede diferenciar de los demás sin tocar nada ajeno. Precedente: `Sidebar1.css` … `Sidebar5.css` son independientes entre sí, aunque visualmente compartan proporciones parecidas (duplicar esas ~10 líneas es preferible a una dependencia cruzada).
 - Un símbolo/ícono se vuelve **intrínseco** al componente (hardcodeado dentro de él, ej. un `<button>✕</button>` nativo escrito directamente en el JSX) cuando ese componente/variante tiene un único uso con un único significado en todo el proyecto. Precedente: el botón ✕ de cada Sidebar está escrito directamente en su propio JSX (no se importa un átomo compartido para eso), porque así el Sidebar no deja de ser `base`.
 - **"Cada mesa su propio mantel":** un componente de `base` se define una sola vez, pero cada page que lo necesita monta su **propia instancia** — nunca una instancia compartida entre pages. Esto es intencional: si una page no monta cierto componente, solo el fondo (`Skeleton`) debe quedar visible ahí — eso es comportamiento correcto del patrón, no un bug a parchear. La única excepción es `Sidebar4`, que no pertenece a ninguna page y por eso lo monta `App.jsx` (ver más abajo).
@@ -120,7 +123,13 @@ context/ (puente)  ──▶  services/api.js  ──▶  LocalAPI/          (pr
 ### `utils/` — datos y funciones de referencia puros
 - Constantes/funciones **estáticas y reutilizables sin estado**, sin JSX, sin conocimiento de React ni de contexto (ej. `MESES`, formateo de fechas). No es "estado de negocio" (eso es `context/`) ni I/O externo (eso es `services/`) — es la tercera categoría: datos de referencia que cualquier capa puede necesitar.
 - **No se duplica el mismo dato/función en dos archivos porque cada uno lo necesita.** Si tanto `context/` como un `widget` necesitan lo mismo (precedente: `MESES` estaba hardcodeado igual en `ProyectoContext.jsx` y en `CintaSesiones.jsx`), se extrae una sola vez a `utils/` y ambos importan de ahí — nunca se decide "cuál de los dos es el dueño", porque ninguno lo es.
-- Lo importan tanto `context/` como `components/` (`base/` o `widgets/`) libremente, ya que no tiene ninguna de las restricciones de capa (no es un componente, no toca contexto).
+- Lo importan `context/` y `components/widgets/` libremente. `components/base/` **no** lo importa (sus únicas dependencias permitidas son CSS, React y hooks puros — ver regla mecánica): si un `base` necesitara un dato o función de `utils/`, o se le pasa por props, o ese componente es en realidad un `widget`.
+
+### `hooks/` — comportamiento reutilizable con React
+- Hooks propios que encapsulan **lógica con estado/efectos/refs** reutilizable por varios consumidores (precedente: `useScrollbarPersonalizada`), sin JSX.
+- **Puros:** solo importan React. Nunca importan un contexto, un componente, `utils/` ni `services/`. Por eso los puede importar tanto `base/` como `widgets/` sin cambiar la clasificación de nadie.
+- Comparten la **lógica**, no el marcado: cada consumidor pone su propio JSX y CSS (ver "Scrollbars minimalistas"). Un hook que necesite contexto no va aquí: es lógica de un widget y vive en él.
+- No es `utils/` (que no tiene React ni estado) ni `context/` (estado de negocio compartido): un hook tiene estado propio **por instancia**.
 
 ### `App.jsx`
 - Decide el routing (`vistaActual` → `PAGES` map) y monta las piezas verdaderamente globales que no pertenecen a ninguna page (hoy solo `Sidebar4`).
@@ -217,11 +226,11 @@ Implementa la sección "Arquitectura de datos" tal cual. Contrato completo en `d
 - `ProyectoContext` carga **caché primero, servidor después** (gana siempre el servidor) y escribe la caché tras cada respuesta del API. `FormularioPunto` guarda/restaura su borrador por sección con `SesionIndexedDB` (vía context).
 - `ListaPuntosProyecto` monta `base/IndicadorSync` en cada tarjeta (ícono nube = `servidor`).
 - Datos de prueba antiguos (bases `comisionSubstanciadora`, anteriores a esta arquitectura) **no se migraron**: quedaron huérfanos en el navegador.
-- **Catálogos:** `secciones` (con `requiereAcuerdo`) y `remitentes` los sirve `LocalAPI` desde su semilla (`semilla.js`, almacén `catalogos`, `DB_VERSION` 2). `ProyectoContext` los carga con caché y expone `SECCIONES_DOCUMENTO` y `REMITENTES`. El remitente de un punto se guarda como `id` (`pleno`…); si el id ya no existe en el catálogo, la tarjeta muestra el valor tal cual. `catalogs/` queda sin uso (reservada para catálogos estáticos puramente de interfaz, si alguna vez hicieran falta).
+- **Catálogos:** `secciones` (con `requiereAcuerdo`) y `remitentes` los sirve `LocalAPI` desde su semilla (`semilla.js`, almacén `catalogos`, `DB_VERSION` 3). `ProyectoContext` los carga con caché y expone `SECCIONES_DOCUMENTO` y `REMITENTES`. El remitente de un punto se guarda como `id` (`pleno`…); si el id ya no existe en el catálogo, la tarjeta muestra el valor tal cual. `catalogs/` queda sin uso (reservada para catálogos estáticos puramente de interfaz, si alguna vez hicieran falta).
 - **Pendientes conocidos:** (1) administración de catálogos (hoy solo lectura, cargados por semilla); (2) estado de **publicación** de la sesión (los lectores ven los puntos al crearlos vs. al publicarlos) — decisión de producto aún abierta; (3) cola de escritura offline (almacén `cola` de `SesionIndexedDB`) y el estado `local` del `IndicadorSync`; (4) la caché del cliente guarda también puntos confidenciales — al implementar autenticación real, vaciarla al cerrar sesión.
 
 - Autenticación real con MSAL (`AuthContext`, `LoginGate`, `BloqueadoGate`) — pausado hasta tener `clientId`/`authority` de un App Registration propio para esta app.
 - Sistema de permisos/roles que alimentaría `BloqueadoGate` — de momento no existe; cualquier cuenta autenticada pasaría.
-- `catalogs/` — carpeta existente pero vacía (ver arriba). `utils/` tiene `meses.js` y `fechas.js`.
+- `catalogs/` — carpeta existente pero vacía (ver arriba). `utils/` tiene `meses.js` y `fechas.js`; `hooks/` tiene `useScrollbarPersonalizada.js`.
 - `Sidebar2` — construido pero "parqueado" (usado hoy solo en `Historial.jsx`).
 - `Sidebar4` — montado desde `App.jsx` pero sin ningún trigger de apertura conectado todavía (solo existe el cierre); no iniciar esa conexión sin que se pida.
